@@ -1,4 +1,4 @@
-package com.aurorabridge.optimizer
+package com.aurorabridge.optimizer.ui
 
 import android.app.Application
 import com.aurorabridge.optimizer.services.BloatwareNotificationHelper
