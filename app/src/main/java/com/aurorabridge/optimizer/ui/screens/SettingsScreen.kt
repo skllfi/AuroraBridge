@@ -1,5 +1,8 @@
+
 package com.aurorabridge.optimizer.ui.screens
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -47,6 +50,7 @@ import com.aurorabridge.optimizer.ui.components.ConfirmationDialog
 import com.aurorabridge.optimizer.ui.vm.LanguageViewModel
 import com.aurorabridge.optimizer.ui.vm.SettingsUiState
 import com.aurorabridge.optimizer.ui.vm.SettingsViewModel
+import java.io.File
 
 @Composable
 fun SettingsScreen(
@@ -58,6 +62,19 @@ fun SettingsScreen(
     val showDialog by settingsViewModel.showConfirmationDialog.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
+
+    val importLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent(),
+        onResult = { uri ->
+            uri?.let { context.contentResolver.openInputStream(it) }?.use { inputStream ->
+                val file = File(context.cacheDir, "imported_settings.json")
+                file.outputStream().use { outputStream ->
+                    inputStream.copyTo(outputStream)
+                }
+                settingsViewModel.importSettings(context, file)
+            }
+        }
+    )
 
     LaunchedEffect(Unit) {
         settingsViewModel.loadInitialState(context)
@@ -84,6 +101,13 @@ fun SettingsScreen(
                     } ?: run {
                         Text(text = "No optimization profile found for your device.")
                     }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    OfflineBackupCard(
+                        onExport = { settingsViewModel.exportSettings(context) },
+                        onImport = { importLauncher.launch("*/*") }
+                    )
 
                     Spacer(modifier = Modifier.height(16.dp))
 
@@ -152,6 +176,30 @@ private fun OptimizationProfileCard(profile: OptimizationProfile, onRunOptimizat
             Spacer(modifier = Modifier.height(16.dp))
             Button(onClick = onRunOptimization, modifier = Modifier.fillMaxWidth()) {
                 Text("Run ${profile.brandName} Auto-Optimize")
+            }
+        }
+    }
+}
+
+@Composable
+fun OfflineBackupCard(onExport: () -> Unit, onImport: () -> Unit) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(text = "Offline Backup", fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(text = "Export and import your settings as a JSON file.")
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                Button(onClick = onExport) {
+                    Icon(Icons.Default.Save, contentDescription = "Export")
+                    Spacer(modifier = Modifier.padding(start = 8.dp))
+                    Text("Export")
+                }
+                Button(onClick = onImport) {
+                    Icon(Icons.Default.Restore, contentDescription = "Import")
+                    Spacer(modifier = Modifier.padding(start = 8.dp))
+                    Text("Import")
+                }
             }
         }
     }

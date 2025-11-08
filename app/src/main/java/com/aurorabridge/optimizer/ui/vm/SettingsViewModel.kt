@@ -1,3 +1,4 @@
+
 package com.aurorabridge.optimizer.ui.vm
 
 import android.content.Context
@@ -6,6 +7,7 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aurorabridge.optimizer.R
+import com.aurorabridge.optimizer.model.Settings
 import com.aurorabridge.optimizer.optimizer.BrandAutoOptimizer
 import com.aurorabridge.optimizer.optimizer.OptimizationProfile
 import com.aurorabridge.optimizer.utils.BackupManager
@@ -17,6 +19,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.io.File
 
 class SettingsViewModel : ViewModel() {
 
@@ -30,9 +33,11 @@ class SettingsViewModel : ViewModel() {
     val snackbarMessage = _snackbarMessage.asSharedFlow()
 
     private lateinit var settingsManager: SettingsManager
+    private lateinit var backupManager: BackupManager
 
     fun loadInitialState(context: Context) {
         settingsManager = SettingsManager(context)
+        backupManager = BackupManager(context)
         viewModelScope.launch {
             val profile = BrandAutoOptimizer.getProfileForCurrentDevice(context)
             val hasBackup = BackupManager.hasBackup(context)
@@ -114,6 +119,36 @@ class SettingsViewModel : ViewModel() {
         settingsManager.setNewFeaturesEnabled(enabled)
         _uiState.update {
             (it as SettingsUiState.Loaded).copy(newFeaturesEnabled = enabled)
+        }
+    }
+
+    fun exportSettings(context: Context) {
+        viewModelScope.launch {
+            val currentState = (_uiState.value as? SettingsUiState.Loaded) ?: return@launch
+            val settings = Settings(
+                experimentalFeaturesEnabled = currentState.newFeaturesEnabled
+            )
+            val file = backupManager.exportSettings(settings)
+            if (file != null) {
+                _snackbarMessage.emit("Settings exported to ${file.absolutePath}")
+            } else {
+                _snackbarMessage.emit("Failed to export settings")
+            }
+        }
+    }
+
+    fun importSettings(context: Context, file: File) {
+        viewModelScope.launch {
+            val settings = backupManager.importSettings(file)
+            if (settings != null) {
+                settingsManager.setNewFeaturesEnabled(settings.experimentalFeaturesEnabled)
+                _uiState.update {
+                    (it as SettingsUiState.Loaded).copy(newFeaturesEnabled = settings.experimentalFeaturesEnabled)
+                }
+                _snackbarMessage.emit("Settings imported successfully")
+            } else {
+                _snackbarMessage.emit("Failed to import settings")
+            }
         }
     }
 

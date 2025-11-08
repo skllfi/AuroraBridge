@@ -55,6 +55,15 @@
     <string name="settings_brand_optimization_dialog_cancel_button">Отмена</string>
     <string name="auto_optimize_on_startup">Авто-оптимизация при запуске</string>
 
+    <!-- Onboarding -->
+    <string name="onboarding_welcome_title">Добро пожаловать в AuroraBridge</string>
+    <string name="onboarding_welcome_subtitle">Лучший инструмент для оптимизации вашего устройства.</string>
+    <string name="onboarding_permissions_title">Разрешения</string>
+    <string name="onboarding_permissions_description">Чтобы извлечь максимальную пользу из AuroraBridge, нам нужно несколько разрешений. Пожалуйста, предоставьте их на следующем экране.</string>
+    <string name="onboarding_button_next">Далее</string>
+    <string name="onboarding_button_grant_permissions">Предоставить разрешения</string>
+    <string name="onboarding_button_finish">Готово</string>
+
     <!-- Переключатель Новых Функций -->
     <string name="new_features_toggle_title">Включить новые функции</string>
     <string name="new_features_toggle_summary">Включить экспериментальные функции, которые все еще находятся в разработке.</string>

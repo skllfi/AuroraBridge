@@ -1,8 +1,11 @@
-package com.aurorabridge.optimizer.ui.apps
+package com.aurorabridge.optimizer.ui.vm
 
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.aurorabridge.optimizer.ui.apps.AppFilter
+import com.aurorabridge.optimizer.ui.apps.AppInfo
+import com.aurorabridge.optimizer.ui.apps.AppManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

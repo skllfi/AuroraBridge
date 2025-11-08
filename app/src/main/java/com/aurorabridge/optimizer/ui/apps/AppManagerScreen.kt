@@ -31,6 +31,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.aurorabridge.optimizer.ui.vm.AppManagerViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

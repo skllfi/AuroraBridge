@@ -1,5 +1,6 @@
-package com.aurorabridge.optimizer
+package com.aurorabridge.optimizer.ui
 
+import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -20,12 +21,14 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.aurorabridge.optimizer.R
 import com.aurorabridge.optimizer.model.DeviceBrand
 import com.aurorabridge.optimizer.ui.apps.AppManagerScreen
 import com.aurorabridge.optimizer.ui.apps.BackupHistoryRepository
@@ -37,11 +40,14 @@ import com.aurorabridge.optimizer.ui.screens.BackupHistoryScreen
 import com.aurorabridge.optimizer.ui.screens.CommandLoggerScreen
 import com.aurorabridge.optimizer.ui.screens.DiagnosticsScreen
 import com.aurorabridge.optimizer.ui.screens.HomeScreen
+import com.aurorabridge.optimizer.ui.screens.OnboardingScreen
+import com.aurorabridge.optimizer.ui.screens.PermissionsScreen
 import com.aurorabridge.optimizer.ui.screens.SettingsScreen
 import com.aurorabridge.optimizer.ui.screens.UserWarningScreen
 import com.aurorabridge.optimizer.ui.theme.AuroraTheme
 import com.aurorabridge.optimizer.ui.vm.BackupHistoryViewModelFactory
 import com.aurorabridge.optimizer.ui.vm.LanguageViewModel
+import com.aurorabridge.optimizer.ui.vm.PermissionsViewModel
 import com.aurorabridge.optimizer.utils.AdbCommander
 import com.aurorabridge.optimizer.utils.BrandAutoOptimizer
 import com.aurorabridge.optimizer.utils.LocaleManager
@@ -60,6 +66,7 @@ class MainActivity : ComponentActivity() {
     private val localeManager by lazy { LocaleManager() }
     private val notificationHelper by lazy { OptimizationNotificationHelper(this) }
     private val bottomNavItems = listOf(Screen.Home, Screen.AppManager, Screen.Settings)
+    private lateinit var navController: NavHostController
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -68,6 +75,8 @@ class MainActivity : ComponentActivity() {
 
         val language = localeManager.getLanguage(this)
         localeManager.setLocale(this, language)
+
+        val settingsManager = SettingsManager(this)
 
         val languageViewModelFactory = object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -81,7 +90,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             AuroraTheme {
-                val navController = rememberNavController()
+                navController = rememberNavController()
                 Scaffold(
                     bottomBar = {
                         NavigationBar {
@@ -108,9 +117,11 @@ class MainActivity : ComponentActivity() {
                 ) { innerPadding ->
                     NavHost(
                         navController = navController,
-                        startDestination = "user_warning",
+                        startDestination = if (settingsManager.isOnboardingComplete()) "user_warning" else "onboarding",
                         modifier = Modifier.padding(innerPadding)
                     ) {
+                        composable("onboarding") { OnboardingScreen(navController) }
+                        composable("permissions") { PermissionsScreen(navController) }
                         // Routes from original MainActivity
                         composable("user_warning") { UserWarningScreen(navController) }
                         composable("diagnostics") { DiagnosticsScreen(navController) }
@@ -144,6 +155,19 @@ class MainActivity : ComponentActivity() {
         }
 
         runAutoOptimization()
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == PermissionsViewModel.PERMISSIONS_REQUEST_CODE) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                navController.navigate("user_warning")
+            }
+        }
     }
 
     private fun runAutoOptimization() {

@@ -1,4 +1,4 @@
-package com.aurorabridge.optimizer.ui.screens
+package com.aurorabridge.optimizer.ui.vm
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel

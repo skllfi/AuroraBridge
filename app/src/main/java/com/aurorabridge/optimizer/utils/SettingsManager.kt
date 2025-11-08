@@ -6,6 +6,14 @@ class SettingsManager(context: Context) {
 
     private val sharedPreferences = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
 
+    fun isOnboardingComplete(): Boolean {
+        return sharedPreferences.getBoolean("onboarding_complete", false)
+    }
+
+    fun setOnboardingComplete(complete: Boolean) {
+        sharedPreferences.edit().putBoolean("onboarding_complete", complete).apply()
+    }
+
     fun isAutoOptimizeOnStartupEnabled(): Boolean {
         return sharedPreferences.getBoolean("auto_optimize_on_startup", false)
     }

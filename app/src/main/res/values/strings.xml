@@ -8,6 +8,15 @@
     <string name="button_run">Run</string>
     <string name="text_field_label_output">Output</string>
 
+    <!-- Onboarding -->
+    <string name="onboarding_welcome_title">Welcome to AuroraBridge</string>
+    <string name="onboarding_welcome_subtitle">The ultimate tool for optimizing your device.</string>
+    <string name="onboarding_permissions_title">Permissions</string>
+    <string name="onboarding_permissions_description">To get the most out of AuroraBridge, we need a few permissions. Please grant them on the next screen.</string>
+    <string name="onboarding_button_next">Next</string>
+    <string name="onboarding_button_grant_permissions">Grant Permissions</string>
+    <string name="onboarding_button_finish">Finish</string>
+
     <!-- Settings Screen -->
     <string name="settings_brand_optimization_dialog_title">Run Optimization</string>
     <string name="settings_brand_optimization_dialog_message">The following commands will be executed:</string>
