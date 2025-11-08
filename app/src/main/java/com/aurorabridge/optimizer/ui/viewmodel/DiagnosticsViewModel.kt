@@ -4,6 +4,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aurorabridge.optimizer.core.adb.AdbAnalyzer
+import com.aurorabridge.optimizer.utils.AdbCommander
 import kotlinx.coroutines.launch
 
 /**
@@ -15,22 +16,26 @@ import kotlinx.coroutines.launch
 class DiagnosticsViewModel : ViewModel() {
 
     private val adbAnalyzer = AdbAnalyzer()
+    private val adbCommander = AdbCommander()
 
     // Holds the list of found limiters. The UI observes this state.
     val analysisResult = mutableStateOf<List<String>>(emptyList())
     // Indicates if the analysis is currently running.
     val isAnalyzing = mutableStateOf(false)
+    // Holds any error message from the analysis.
+    val errorMessage = mutableStateOf<String?>(null)
 
     /**
-     * A mock command executor for testing purposes.
-     * In a real scenario, this would be replaced with an actual AdbCommandExecutor.
+     * A command executor that uses the real AdbCommander.
      */
-    private val mockCommandExecutor: suspend (String) -> String = {
-        // Simulate finding two limiters for demonstration purposes
-        when {
-            it.contains("com.huawei.powergenie") -> "package:com.huawei.powergenie"
-            it.contains("com.miui.powerkeeper") -> "package:com.miui.powerkeeper"
-            else -> ""
+    private val commandExecutor: suspend (String) -> String = {
+        val result = adbCommander.runAdbCommandAsync(it)
+        if (result.isSuccess) {
+            result.output ?: ""
+        } else {
+            // In case of an error, we can log it or display it.
+            errorMessage.value = result.error
+            ""
         }
     }
 
@@ -41,7 +46,8 @@ class DiagnosticsViewModel : ViewModel() {
     fun runAnalysis() {
         viewModelScope.launch {
             isAnalyzing.value = true
-            analysisResult.value = adbAnalyzer.analyze(mockCommandExecutor)
+            errorMessage.value = null
+            analysisResult.value = adbAnalyzer.analyze(commandExecutor)
             isAnalyzing.value = false
         }
     }

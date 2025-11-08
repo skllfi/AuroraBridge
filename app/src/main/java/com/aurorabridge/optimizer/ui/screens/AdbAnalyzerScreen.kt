@@ -20,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -34,6 +35,7 @@ fun AdbAnalyzerScreen(
 ) {
     val analysisResult by viewModel.analysisResult
     val isAnalyzing by viewModel.isAnalyzing
+    val errorMessage by viewModel.errorMessage
 
     Scaffold(
         topBar = { TopAppBar(title = { Text("ADB Analyzer") }) }
@@ -64,6 +66,14 @@ fun AdbAnalyzerScreen(
             if (isAnalyzing) {
                 CircularProgressIndicator()
             } else {
+                errorMessage?.let {
+                    Text(
+                        text = "Error: $it",
+                        color = Color.Red,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+                }
+
                 if (analysisResult.isNotEmpty()) {
                     Text(
                         text = "Found Limiters:",
@@ -81,7 +91,10 @@ fun AdbAnalyzerScreen(
                         }
                     }
                 } else {
-                    Text("Analysis has not been run or no limiters were found.")
+                    // Don't show this message if there was an error
+                    if (errorMessage == null) {
+                        Text("Analysis has not been run or no limiters were found.")
+                    }
                 }
             }
         }
