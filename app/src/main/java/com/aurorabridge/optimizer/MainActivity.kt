@@ -14,17 +14,15 @@ import com.aurorabridge.optimizer.ui.screens.DiagnosticsScreen
 import com.aurorabridge.optimizer.ui.screens.AdbCompanionScreen
 import com.aurorabridge.optimizer.ui.screens.AppListScreen
 import com.aurorabridge.optimizer.ui.screens.SettingsScreen
-import androidx.work.PeriodicWorkRequestBuilder
-import androidx.work.WorkManager
-import java.util.concurrent.TimeUnit
-import com.aurorabridge.optimizer.services.AppMonitorWorker
+import com.aurorabridge.optimizer.ui.screens.AdbActivationGuide
+import com.aurorabridge.optimizer.utils.LocaleManager
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // schedule periodic worker every 12 hours
-        val workRequest = PeriodicWorkRequestBuilder<AppMonitorWorker>(12, TimeUnit.HOURS).build()
-        WorkManager.getInstance(this).enqueue(workRequest)
+
+        val language = LocaleManager.getLanguage(this)
+        LocaleManager.setLocale(this, language)
 
         setContent {
             AuroraTheme {
@@ -35,6 +33,7 @@ class MainActivity : ComponentActivity() {
                     composable("adb") { AdbCompanionScreen(navController) }
                     composable("apps") { AppListScreen(navController) }
                     composable("settings") { SettingsScreen(navController) }
+                    composable("adb_guide") { AdbActivationGuide(navController) } // Changed route
                 }
             }
         }

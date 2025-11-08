@@ -7,6 +7,15 @@ import java.io.InputStreamReader
 object AdbOptimizer {
     private const val TAG = "AdbOptimizer"
 
+    fun applyProfile(profileName: String): Map<String, String> {
+        val commands = AdbProfiles.getCommandsForProfile(profileName)
+        if (commands.isEmpty()) {
+            Log.w(TAG, "No commands found for profile: $profileName")
+            return mapOf("error" to "Profile not found or is empty.")
+        }
+        return runCommands(commands)
+    }
+
     fun runCommands(cmds: List<String>): Map<String,String> {
         val results = mutableMapOf<String,String>()
         for (cmd in cmds) {

@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.ComponentName
 import android.provider.Settings
-import android.util.Log
 import com.aurorabridge.optimizer.utils.BrandDetectionUtils
 import java.util.Locale
 
@@ -75,12 +74,64 @@ class XiaomiOptimizer : BaseOptimizer() {
     }
 }
 
+class SamsungOptimizer : BaseOptimizer() {
+    override val brandName = "samsung"
+    override fun openBatteryOptimization(context: Context) {
+        try {
+            val intent = Intent()
+            intent.component = ComponentName("com.samsung.android.lool", "com.samsung.android.sm.ui.battery.BatteryActivity")
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(intent)
+        } catch (e: Exception) {
+            context.startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        }
+    }
+
+    override fun openAutoStartSettings(context: Context) {
+        // Samsung does not have a direct autostart manager, it's managed by battery settings
+    }
+
+    override fun openNotificationSettings(context: Context) {
+        context.startActivity(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+            putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        })
+    }
+}
+
+class OnePlusOptimizer : BaseOptimizer() {
+    override val brandName = "oneplus"
+    override fun openBatteryOptimization(context: Context) {
+        try {
+            val intent = Intent()
+            intent.component = ComponentName("com.oneplus.security", "com.oneplus.security.chainlaunch.view.ChainLaunchAppListActivity")
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(intent)
+        } catch (e: Exception) {
+            context.startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        }
+    }
+
+    override fun openAutoStartSettings(context: Context) {
+        // OnePlus autostart is also tied to battery optimization
+    }
+
+    override fun openNotificationSettings(context: Context) {
+        context.startActivity(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+            putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        })
+    }
+}
+
 object BrandOptimizerManager {
     fun getOptimizerFor(manufacturer: String): BaseOptimizer? {
         val m = manufacturer.lowercase(Locale.getDefault())
         return when {
             m.contains("huawei") || m.contains("honor") -> HonorOptimizer()
             m.contains("xiaomi") || m.contains("redmi") -> XiaomiOptimizer()
+            m.contains("samsung") -> SamsungOptimizer()
+            m.contains("oneplus") -> OnePlusOptimizer()
             else -> null
         }
     }

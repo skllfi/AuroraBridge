@@ -1,75 +1,86 @@
 package com.aurorabridge.optimizer.ui.screens
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import com.aurorabridge.optimizer.adb.AdbConnectionManager
-import com.aurorabridge.optimizer.adb.AdbProfiles
-import com.aurorabridge.optimizer.adb.AdbOptimizer
-import androidx.compose.runtime.LaunchedEffect
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalContext
 import android.widget.Toast
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import com.aurorabridge.optimizer.R
+import com.aurorabridge.optimizer.adb.AdbProfiles
+import com.aurorabridge.optimizer.ui.vm.AdbCompanionUiState
+import com.aurorabridge.optimizer.ui.vm.AdbCompanionViewModel
 
 @Composable
-fun AdbCompanionScreen(navController: androidx.navigation.NavController) {
+fun AdbCompanionScreen(
+    navController: NavController,
+    adbCompanionViewModel: AdbCompanionViewModel = viewModel()
+) {
+    val uiState by adbCompanionViewModel.uiState.collectAsState()
+    val profileNames = remember { AdbProfiles.getProfileNames() }
     val context = LocalContext.current
-    var status by remember { mutableStateOf("Unknown") }
-    var results by remember { mutableStateOf(mapOf<String,String>()) }
 
-    LaunchedEffect(Unit) {
-        status = if (AdbConnectionManager.isAdbWifiEnabled()) "ADB Wi-Fi: enabled" else "ADB Wi-Fi: disabled"
-    }
-
-    Scaffold(topBar = { TopAppBar(title = { Text("ADB Companion") }) }) { padding ->
+    Scaffold(topBar = { TopAppBar(title = { Text(stringResource(R.string.adb_companion_title)) }) }) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp)) {
-            Text(status)
-            Spacer(Modifier.height(12.dp))
-            Button(onClick = {
-                val ok = AdbConnectionManager.enableAdbWifi()
-                Toast.makeText(context, if (ok) "Enabled ADB Wi-Fi (try adb connect <ip>:5555)" else "Failed to enable ADB Wi-Fi", Toast.LENGTH_LONG).show()
-                status = if (AdbConnectionManager.isAdbWifiEnabled()) "ADB Wi-Fi: enabled" else "ADB Wi-Fi: disabled"
-            }, modifier = Modifier.fillMaxWidth()) {
-                Text("Enable ADB Wi-Fi")
+            Card(modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = stringResource(R.string.diagnostics_warning_title),
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Red
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = stringResource(R.string.adb_companion_warning_message)
+                    )
+                }
             }
-            Spacer(Modifier.height(8.dp))
-            Button(onClick = {
-                val ok = AdbConnectionManager.disableAdbWifi()
-                Toast.makeText(context, if (ok) "Disabled ADB Wi-Fi" else "Failed to disable ADB Wi-Fi", Toast.LENGTH_LONG).show()
-                status = if (AdbConnectionManager.isAdbWifiEnabled()) "ADB Wi-Fi: enabled" else "ADB Wi-Fi: disabled"
-            }, modifier = Modifier.fillMaxWidth()) {
-                Text("Disable ADB Wi-Fi")
+
+            when (val state = uiState) {
+                is AdbCompanionUiState.Idle, is AdbCompanionUiState.Success, is AdbCompanionUiState.Error -> {
+                    if (state is AdbCompanionUiState.Success) {
+                        Toast.makeText(context, state.message, Toast.LENGTH_SHORT).show()
+                    } else if (state is AdbCompanionUiState.Error) {
+                        Toast.makeText(context, state.message, Toast.LENGTH_LONG).show()
+                    }
+
+                    LazyColumn(modifier = Modifier.fillMaxWidth()) {
+                        items(profileNames.size) { index ->
+                            val profileName = profileNames[index]
+                            Button(
+                                onClick = { adbCompanionViewModel.applyOptimizationProfile(profileName) },
+                                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                            ) {
+                                Text(stringResource(R.string.adb_companion_apply_profile_button, profileName))
+                            }
+                        }
+                    }
+                }
+                is AdbCompanionUiState.Loading -> {
+                    CircularProgressIndicator()
+                }
             }
-            Spacer(Modifier.height(12.dp))
-            Button(onClick = {
-                // run universal profile
-                results = withContext(Dispatchers.IO) { AdbOptimizer.runCommands(AdbProfiles.UniversalFix) }
-            }, modifier = Modifier.fillMaxWidth()) {
-                Text("Run UniversalFix Profile")
+
+            Spacer(Modifier.height(16.dp))
+
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                Button(onClick = { adbCompanionViewModel.enableAdbWifi() }) {
+                    Text(stringResource(R.string.adb_companion_enable_wifi_button))
+                }
+                Button(onClick = { adbCompanionViewModel.disableAdbWifi() }) {
+                    Text(stringResource(R.string.adb_companion_disable_wifi_button))
+                }
             }
-            Spacer(Modifier.height(8.dp))
-            Button(onClick = {
-                results = withContext(Dispatchers.IO) { AdbOptimizer.runCommands(AdbProfiles.HuaweiFix) }
-            }, modifier = Modifier.fillMaxWidth()) {
-                Text("Run HuaweiFix Profile")
-            }
-            Spacer(Modifier.height(12.dp))
-            Text("Last results: ")
-            for ((cmd, out) in results) {
-                Text(text = cmd + ": " + out.take(120))
-            }
-            Spacer(Modifier.height(12.dp))
-            Button(onClick = onBack) { Text("Back") }
+
+            Spacer(Modifier.weight(1f))
+            Button(onClick = { navController.popBackStack() }) { Text(stringResource(R.string.diagnostics_back_button)) }
         }
     }
 }
