@@ -1,23 +1,25 @@
-## Направления для улучшения
+## Задачи на будущее
 
-### Безопасность и пользовательский опыт
-*   [x] **Предупреждения для пользователя:** Внедрить в интерфейс понятные предупреждения о потенциальных рисках при использовании ADB, так как неправильное использование может привести к нестабильной работе устройства.
-*   [x] **Резервное копирование и восстановление:** Добавить функцию создания "точки восстановления" для сохранения текущих настроек перед применением серьезных изменений.
-*   [x] **Интерактивные инструкции:** Создать пошаговое руководство в приложении для помощи пользователям в активации "Отладки по USB" и "Отладки по Wi-Fi".
+### Главный приоритет
+*   [ ] **Реализовать AdbAnalyzer:** Создать интеллектуальный модуль, который будет сканировать систему для автоматического определения активных фоновых ограничений (например, PowerGenie, MIUIOptimization). Это позволит предлагать пользователю не универсальный, а точечный, наиболее подходящий профиль оптимизации.
 
 ### Функциональные улучшения
-*   [x] **Поддержка новых брендов:** Расширить `BrandAutoOptimizer` для поддержки большего количества производителей, что потребует исследования специфичных для каждого бренда команд и настроек. (Основа заложена, можно расширять)
-*   [x] **Массовое редактирование/удаление приложений:** Добавить возможность управлять несколькими приложениями одновременно (например, отключать для них оптимизацию батареи или удалять).
-*   [x] **Авто-оптимизация при запуске:** Реализовать функцию, которая будет автоматически применять выбранный профиль оптимизации при загрузке устройства.
+*   [ ] **Логгер команд (Command Logger):** Реализовать функцию для записи всех выполненных ADB-команд. Это упростит отладку и поможет пользователям видеть, какие именно изменения были внесены в систему.
+*   [ ] **Безопасный режим (Safe Mode):** Добавить режим, в котором приложение будет только показывать, какие команды оно *собирается* выполнить, но не будет их выполнять. Это даст пользователям полный контроль и уверенность в безопасности.
 
-## Areas for Improvement
+### Пользовательский интерфейс
+*   [ ] **Полноценный онбординг (UI Onboarding Flow):** Создать серию приветственных экранов, которые при первом запуске проведут пользователя через все необходимые шаги: от объяснения цели приложения до запроса разрешений и активации ADB.
 
-### Security and User Experience
-*   [x] **User Warnings:** Implement clear warnings in the UI about the potential risks of using ADB, as incorrect usage can lead to device instability.
-*   [x] **Backup and Restore:** Add a feature to create a "restore point" to save current settings before applying major changes.
-*   [x] **Interactive Instructions:** Create a step-by-step guide within the app to help users enable "USB Debugging" and "Wi-Fi Debugging."
+---
+
+## Future Tasks
+
+### Top Priority
+*   [ ] **Implement AdbAnalyzer:** Create an intelligent module to scan the system and automatically detect active background restrictions (e.g., PowerGenie, MIUIOptimization). This will allow the app to suggest a precise, tailored optimization profile instead of a generic one.
 
 ### Functional Enhancements
-*   [x] **New Brand Support:** Extend `BrandAutoOptimizer` to support more manufacturers, which will require research into brand-specific commands and settings. (Foundation is laid, can be expanded)
-*   [x] **Bulk App Editing/Deletion:** Add the ability to manage multiple apps at once (e.g., disable battery optimization for them or uninstall them).
-*   [x] **Auto-Optimize on Startup:** Implement a feature that automatically applies the selected optimization profile when the device boots up.
+*   [ ] **Command Logger:** Implement a feature to log all executed ADB commands. This will simplify debugging and help users see exactly what changes were made to the system.
+*   [ ] **Safe Mode:** Add a mode where the app only shows which commands it *intends* to execute without actually running them. This will give users full control and confidence in the safety of the operations.
+
+### User Interface
+*   [ ] **Full Onboarding Flow:** Create a series of welcome screens that guide the user through all the necessary steps on the first launch: from explaining the app's purpose to requesting permissions and activating ADB.
