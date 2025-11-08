@@ -28,9 +28,9 @@ import com.aurorabridge.optimizer.model.DeviceBrand
 import com.aurorabridge.optimizer.ui.apps.AppManagerScreen
 import com.aurorabridge.optimizer.ui.instructions.InstructionsScreen
 import com.aurorabridge.optimizer.ui.screens.AdbActivationGuide
-import com.aurorabridge.optimizer.ui.screens.AdbAnalyzerScreen
 import com.aurorabridge.optimizer.ui.screens.AdbCompanionScreen
 import com.aurorabridge.optimizer.ui.screens.AppControlScreen
+import com.aurorabridge.optimizer.ui.screens.DiagnosticsScreen
 import com.aurorabridge.optimizer.ui.screens.HomeScreen
 import com.aurorabridge.optimizer.ui.screens.SettingsScreen
 import com.aurorabridge.optimizer.ui.screens.UserWarningScreen
@@ -107,7 +107,7 @@ class MainActivity : ComponentActivity() {
                     ) {
                         // Routes from original MainActivity
                         composable("user_warning") { UserWarningScreen(navController) }
-                        composable("diagnostics") { AdbAnalyzerScreen(navController) } // Changed to AdbAnalyzerScreen
+                        composable("diagnostics") { DiagnosticsScreen(navController) } // Reverted to original
                         composable("adb") { AdbCompanionScreen(navController) }
                         composable("adb_guide") { AdbActivationGuide(navController) }
                         composable("instructions") { InstructionsScreen() }

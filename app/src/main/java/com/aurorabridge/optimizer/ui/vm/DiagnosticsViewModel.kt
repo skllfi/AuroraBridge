@@ -5,8 +5,9 @@ import android.content.Intent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aurorabridge.optimizer.R
-import com.aurorabridge.optimizer.adb.AdbAnalyzer
+import com.aurorabridge.optimizer.analyzer.AdbAnalyzer
 import com.aurorabridge.optimizer.model.Limiter
+import com.aurorabridge.optimizer.utils.AdbCommander
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,6 +23,9 @@ class DiagnosticsViewModel : ViewModel() {
     private val _snackbarMessage = MutableSharedFlow<String>()
     val snackbarMessage = _snackbarMessage.asSharedFlow()
 
+    private val adbAnalyzer = AdbAnalyzer()
+    private val adbCommander = AdbCommander()
+
     fun onWarningConfirmed() {
         _uiState.value = DiagnosticsUiState.Idle
     }
@@ -29,19 +33,40 @@ class DiagnosticsViewModel : ViewModel() {
     fun runDiagnostics() {
         viewModelScope.launch {
             _uiState.value = DiagnosticsUiState.Loading
-            kotlinx.coroutines.delay(2000) // Simulate analysis time
-            val report = AdbAnalyzer.runFullAnalysis()
-            _uiState.value = DiagnosticsUiState.Success(report)
+
+            // The command executor that runs ADB commands and returns the output
+            val commandExecutor: suspend (String) -> String = {
+                val result = adbCommander.runAdbCommandAsync(it)
+                if (result.isSuccess) {
+                    result.output ?: ""
+                } else {
+                    // If a command fails, we can surface this to the user
+                    _uiState.value = DiagnosticsUiState.Error(result.error ?: "Unknown ADB error")
+                    ""
+                }
+            }
+
+            // Run the analysis
+            val report = adbAnalyzer.analyze(commandExecutor)
+
+            // Only update to success if we are still in the loading state
+            if (_uiState.value is DiagnosticsUiState.Loading) {
+                _uiState.value = DiagnosticsUiState.Success(report)
+            }
         }
     }
 
     fun applyFix(limiter: Limiter, context: Context) {
         viewModelScope.launch {
             limiter.fixCommand?.let {
-                AdbAnalyzer.applyFix(it)
-                _snackbarMessage.emit(context.getString(R.string.limiter_fix_applied, context.getString(limiter.name)))
-                // Re-run diagnostics to reflect the change
-                runDiagnostics()
+                val result = adbCommander.runAdbCommandAsync(it)
+                if (result.isSuccess) {
+                    _snackbarMessage.emit(context.getString(R.string.limiter_fix_applied, context.getString(limiter.name)))
+                    // Re-run diagnostics to reflect the change
+                    runDiagnostics()
+                } else {
+                    _snackbarMessage.emit(result.error ?: "Failed to apply fix")
+                }
             }
         }
     }
@@ -63,23 +88,17 @@ class DiagnosticsViewModel : ViewModel() {
         stringBuilder.append("ADB Diagnostics Report\n")
         stringBuilder.append("=========================\n\n")
 
-        stringBuilder.append("Found Limiters:\n")
-        report.foundLimiters.forEach { limiter ->
-            stringBuilder.append("- ${context.getString(limiter.name)}\n")
+        if (report.foundLimiters.isNotEmpty()) {
+            stringBuilder.append("Found Limiters:\n")
+            report.foundLimiters.forEach { limiter ->
+                stringBuilder.append("- ${context.getString(limiter.name)}\n")
+            }
+        } else {
+            stringBuilder.append("No known limiters were found.\n")
         }
 
-        stringBuilder.append("\nLogcat Errors:\n")
-        stringBuilder.append(report.logcatErrors.joinToString("\n"))
+        // The rest of the report generation can be added back later
 
-        stringBuilder.append("\n\nTop 5 Battery Hogs:\n")
-        stringBuilder.append(report.batteryHogs.joinToString("\n") { "- ${it.first}: ${it.second}%" })
-
-        stringBuilder.append("\n\nRaw Outputs:\n")
-        report.rawOutputs.forEach { (key, value) ->
-            stringBuilder.append("\n--- $key ---\n")
-            stringBuilder.append(value)
-            stringBuilder.append("\n")
-        }
         return stringBuilder.toString()
     }
 }

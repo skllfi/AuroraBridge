@@ -1,118 +1,91 @@
 package com.aurorabridge.optimizer.analyzer
 
-import android.util.Log
 import com.aurorabridge.optimizer.R
 import com.aurorabridge.optimizer.model.Limiter
 
-object AdbAnalyzer {
-    private const val TAG = "AdbAnalyzer"
+class AdbAnalyzer {
 
+    // The report structure remains the same
     data class AnalyzerReport(
         val foundLimiters: List<Limiter>,
-        val rawOutputs: Map<String, String>,
-        val logcatErrors: List<String>,
-        val batteryHogs: List<Pair<String, Double>>
+        val rawOutputs: Map<String, String> = emptyMap(),
+        val logcatErrors: List<String> = emptyList(),
+        val batteryHogs: List<Pair<String, Double>> = emptyList()
     )
 
+    // The list of known limiters to check for
     private val knownLimiters = listOf(
+        // Huawei PowerGenie
         Limiter(
             name = R.string.limiter_powergenie_name,
             description = R.string.limiter_powergenie_desc,
             solution = R.string.limiter_powergenie_solution,
-            fixCommand = "pm disable-user com.huawei.powergenie"
+            fixCommand = "pm disable-user com.huawei.powergenie",
+            checkCommand = "pm list packages | grep com.huawei.powergenie"
         ),
+        // MIUI PowerKeeper
         Limiter(
             name = R.string.limiter_miui_name,
             description = R.string.limiter_miui_desc,
-            solution = R.string.limiter_miui_solution
+            solution = R.string.limiter_miui_solution,
+            checkCommand = "getprop ro.miui.ui.version.name"
         ),
+        // MediaTek DuraSpeed
         Limiter(
             name = R.string.limiter_duraspeed_name,
             description = R.string.limiter_duraspeed_desc,
-            solution = R.string.limiter_duraspeed_solution
+            solution = R.string.limiter_duraspeed_solution,
+            checkCommand = "getprop ro.mtk_duraspeed.support"
         ),
+        // Samsung Hibernation
         Limiter(
             name = R.string.limiter_hibernation_name,
             description = R.string.limiter_hibernation_desc,
-            solution = R.string.limiter_hibernation_solution
+            solution = R.string.limiter_hibernation_solution,
+            checkCommand = "pm list packages | grep com.samsung.android.lool"
         ),
+        // Aggressive Doze
         Limiter(
             name = R.string.limiter_aggressive_doze_name,
             description = R.string.limiter_aggressive_doze_desc,
             solution = R.string.limiter_aggressive_doze_solution,
-            fixCommand = "dumpsys deviceidle disable light"
+            fixCommand = "dumpsys deviceidle disable light",
+            checkCommand = "dumpsys deviceidle | grep mLightIdleEnabled"
         )
     )
 
-    fun runFullAnalysis(): AnalyzerReport {
-        val cmds = mapOf(
-            "pm_list" to arrayOf("sh", "-c", "pm list packages"),
-            "dumpsys_deviceidle" to arrayOf("sh", "-c", "dumpsys deviceidle"),
-            "dumpsys_battery" to arrayOf("sh", "-c", "dumpsys battery"),
-            "powergenie_check" to arrayOf("sh", "-c", "pm list packages | grep powergenie || true"),
-            "miui_check" to arrayOf("sh", "-c", "getprop ro.miui.ui.version.name || true"),
-            "duraspeed_check" to arrayOf("sh", "-c", "getprop ro.mtk_duraspeed.support || true"),
-            "hibernation_check" to arrayOf("sh", "-c", "pm list packages | grep hibernation || true"),
-            "doze_check" to arrayOf("sh", "-c", "dumpsys deviceidle | grep mLightIdleEnabled || true")
-        )
-        val outputs = mutableMapOf<String, String>()
-        val found = mutableListOf<Limiter>()
+    /**
+     * Analyzes the system for known limiters using the provided command executor.
+     *
+     * @param commandExecutor A function that executes a shell command and returns the output.
+     * @return An AnalyzerReport containing the list of found limiters.
+     */
+    suspend fun analyze(commandExecutor: suspend (String) -> String): AnalyzerReport {
+        val foundLimiters = mutableListOf<Limiter>()
 
-        for ((k, cmd) in cmds) {
-            try {
-                val p = Runtime.getRuntime().exec(cmd)
-                val reader = p.inputStream.bufferedReader()
-                val out = reader.readText()
-                outputs[k] = out
-
-                when (k) {
-                    "powergenie_check" -> if (out.contains("powergenie", true)) knownLimiters.find { it.name == R.string.limiter_powergenie_name }?.let { found.add(it) }
-                    "miui_check" -> if (out.isNotBlank()) knownLimiters.find { it.name == R.string.limiter_miui_name }?.let { found.add(it) }
-                    "duraspeed_check" -> if (out.trim() == "1") knownLimiters.find { it.name == R.string.limiter_duraspeed_name }?.let { found.add(it) }
-                    "hibernation_check" -> if (out.contains("hibernation", true)) knownLimiters.find { it.name == R.string.limiter_hibernation_name }?.let { found.add(it) }
-                    "doze_check" -> if (out.contains("mLightIdleEnabled=true")) knownLimiters.find { it.name == R.string.limiter_aggressive_doze_name }?.let { found.add(it) }
-                }
-            } catch (e: Exception) {
-                Log.w(TAG, "cmd failed: $k -> $e")
-                outputs[k] = "error: $e"
+        for (limiter in knownLimiters) {
+            val output = commandExecutor(limiter.checkCommand)
+            if (isLimiterActive(limiter, output)) {
+                foundLimiters.add(limiter)
             }
         }
 
-        val logcatErrors = analyzeLogcat()
-        val batteryHogs = parseBatteryStats(outputs["dumpsys_battery"] ?: "")
-
-        return AnalyzerReport(found, outputs, logcatErrors, batteryHogs)
+        // For now, we only return the found limiters.
+        // The other report fields can be populated in the future.
+        return AnalyzerReport(foundLimiters = foundLimiters)
     }
 
-    private fun analyzeLogcat(): List<String> {
-        val errors = mutableListOf<String>()
-        try {
-            val p = Runtime.getRuntime().exec(arrayOf("sh", "-c", "logcat -d -v time | grep -E 'ANR in|Broadcast timeout'"))
-            val reader = p.inputStream.bufferedReader()
-            errors.addAll(reader.readLines())
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to analyze logcat", e)
-        }
-        return errors
-    }
-
-    private fun parseBatteryStats(batteryStatsOutput: String): List<Pair<String, Double>> {
-        val batteryHogs = mutableListOf<Pair<String, Double>>()
-        val regex = Regex("Uid u0a\\d+: ([\\d\\.]+) \\(\\d+\\) (.*)")
-        batteryStatsOutput.lines().forEach { line ->
-            val match = regex.find(line)
-            if (match != null) {
-                val (usage, _, name) = match.destructured
-                batteryHogs.add(Pair(name.trim(), usage.toDouble()))
-            }
-        }
-        return batteryHogs.sortedByDescending { it.second }.take(5)
-    }
-    fun applyFix(command: String) {
-        try {
-            Runtime.getRuntime().exec(arrayOf("sh", "-c", command))
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to apply fix: $command", e)
+    /**
+     * Checks if a limiter is active based on the output of its check command.
+     */
+    private fun isLimiterActive(limiter: Limiter, output: String): Boolean {
+        return when (limiter.name) {
+            R.string.limiter_powergenie_name -> output.contains("com.huawei.powergenie")
+            R.string.limiter_miui_name -> output.isNotBlank()
+            R.string.limiter_duraspeed_name -> output.trim() == "1"
+            R.string.limiter_hibernation_name -> output.contains("com.samsung.android.lool")
+            R.string.limiter_aggressive_doze_name -> output.contains("mLightIdleEnabled=true")
+            else -> false
         }
     }
 }
