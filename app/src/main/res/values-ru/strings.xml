@@ -54,6 +54,11 @@
     <string name="instructions_step3_5">Найдите IP-адрес вашего устройства в меню «Настройки» > «О телефоне» > «Состояние» > «IP-адрес».</string>
     <string name="instructions_step3_6">В терминале выполните команду «adb connect [IP-адрес_устройства]:5555».</string>
 
+    <string name="adb_guide_dev_options_enabled_title">Параметры разработчика уже включены</string>
+    <string name="adb_guide_dev_options_enabled_desc">Похоже, у вас уже включены параметры разработчика. Хотите перейти к последнему шагу?</string>
+    <string name="adb_guide_skip_to_last_step">Пропустить</string>
+    <string name="adb_guide_stay_in_guide">Остаться</string>
+
     <!-- Руководство по активации ADB -->
     <string name="adb_guide_title">Руководство по активации ADB</string>
     <string name="adb_guide_step1_title">Шаг 1: Откройте «Параметры разработчика»</string>

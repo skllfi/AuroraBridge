@@ -1,6 +1,6 @@
 # Refactoring Progress: Interactive ADB Guide
 
-We are in the process of refactoring the static `InstructionsScreen` into an interactive, multi-step `AdbActivationGuide`.
+This refactoring is complete. The static `InstructionsScreen` has been successfully replaced with an interactive, multi-step `AdbActivationGuide`.
 
 ### Completed Steps:
 
@@ -13,12 +13,10 @@ We are in the process of refactoring the static `InstructionsScreen` into an int
 5.  **Externalized Strings**: All hardcoded strings have been moved to `res/values/strings.xml`.
 6.  **Added "Skip" Feature**: Implemented a check to see if Developer Options are already enabled and added a dialog to allow users to skip the guide.
 7.  **Updated English Strings**: The new strings for the "skip" feature have been added to `res/values/strings.xml`.
-
-### Next Step:
-
-1.  **Add Russian Translations**: The following new strings need to be added to `app/src/main/res/values-ru/strings.xml`:
-
-    *   `adb_guide_dev_options_enabled_title`: "Параметры разработчика уже включены"
-    *   `adb_guide_dev_options_enabled_desc`: "Похоже, у вас уже включены параметры разработчика. Хотите перейти к последнему шагу?"
-    *   `adb_guide_skip_to_last_step`: "Пропустить"
-    *   `adb_guide_stay_in_guide`: "Остаться"
+8.  **Added Russian Translations**: The new strings have been added to `app/src/main/res/values-ru/strings.xml`.
+9.  **UI Refinement**:
+    -   Wrapped step content in a `Card` for better visual separation.
+    -   Adjusted spacing and alignment for a cleaner look.
+10. **Performance Optimization**:
+    -   The `Step` data class was updated to hold `Int` resource IDs instead of `String`s.
+    -   The creation of the `steps` list is now wrapped in a `remember` block to prevent it from being recreated on every recomposition.
