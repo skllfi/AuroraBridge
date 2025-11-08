@@ -4,24 +4,63 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.BatteryAlert
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.aurorabridge.optimizer.R
+import com.aurorabridge.optimizer.ui.vm.AppInfo
 import com.aurorabridge.optimizer.ui.vm.AppListUiState
 import com.aurorabridge.optimizer.ui.vm.AppListViewModel
-import com.aurorabridge.optimizer.ui.vm.AppInfo
+import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppListScreen(
     navController: NavController,
@@ -29,6 +68,20 @@ fun AppListScreen(
 ) {
     val context = LocalContext.current
     val uiState by appListViewModel.uiState.collectAsState()
+    val isSelectionModeActive by appListViewModel.isSelectionModeActive.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
+    val snackbarMessage by appListViewModel.snackbarMessage.collectAsState()
+
+    LaunchedEffect(snackbarMessage) {
+        snackbarMessage?.let {
+            scope.launch {
+                snackbarHostState.showSnackbar(it)
+                appListViewModel.onSnackbarShown()
+            }
+        }
+    }
 
     // Load apps when the composable is first launched
     LaunchedEffect(Unit) {
@@ -36,7 +89,19 @@ fun AppListScreen(
     }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text(stringResource(R.string.app_list_title)) }) }
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.app_list_title)) },
+                navigationIcon = {
+                    if (isSelectionModeActive) {
+                        IconButton(onClick = { appListViewModel.exitSelectionMode() }) {
+                            Icon(Icons.Default.ArrowBack, contentDescription = "Exit Selection Mode")
+                        }
+                    }
+                }
+            )
+        },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp)) {
             when (val state = uiState) {
@@ -49,7 +114,24 @@ fun AppListScreen(
                     if (state.apps.isEmpty()) {
                         Text(stringResource(R.string.app_list_no_apps))
                     } else {
-                        AppListView(apps = state.apps, context = context)
+                        Column(modifier = Modifier.fillMaxSize()) {
+                            AppListView(
+                                modifier = Modifier.weight(1f),
+                                apps = state.apps,
+                                context = context,
+                                navController = navController,
+                                appListViewModel = appListViewModel,
+                                isSelectionModeActive = isSelectionModeActive
+                            )
+                            if (isSelectionModeActive) {
+                                Spacer(modifier = Modifier.height(16.dp))
+                                ActionButtons(
+                                    appListViewModel = appListViewModel,
+                                    state = state,
+                                    context = context
+                                )
+                            }
+                        }
                     }
                 }
                 is AppListUiState.Error -> {
@@ -60,23 +142,42 @@ fun AppListScreen(
     }
 }
 
-// A new composable for the app list view
 @Composable
-private fun AppListView(apps: List<AppInfo>, context: Context) {
-    LazyColumn(modifier = Modifier.fillMaxSize()) {
-        items(apps) { app ->
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp)
-                    .clickable { openAppSettings(context, app.packageName) },
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-            ) {
-                Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = app.name, modifier = Modifier.weight(1f))
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Button(onClick = { openAppSettings(context, app.packageName) }) {
-                        Text(stringResource(R.string.app_list_settings_button))
+private fun ActionButtons(
+    appListViewModel: AppListViewModel,
+    state: AppListUiState.Success,
+    context: Context
+) {
+    var showMenu by remember { mutableStateOf(false) }
+    val availableProfiles = appListViewModel.getAvailableProfiles()
+
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+        Button(onClick = { appListViewModel.disableBatteryOptimizationForSelectedApps() }) {
+            Icon(Icons.Default.BatteryAlert, contentDescription = "Disable Battery Optimization")
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(stringResource(R.string.app_list_disable_optimization_button))
+        }
+        Button(onClick = { appListViewModel.uninstallSelectedApps() }) {
+            Icon(Icons.Default.Delete, contentDescription = "Uninstall")
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(stringResource(R.string.app_list_uninstall_button))
+        }
+        Box {
+            val recommendedProfile = state.recommendedProfile
+            if (recommendedProfile != null) {
+                Button(onClick = { appListViewModel.applyFixProfileForSelectedApps(context, recommendedProfile) }) {
+                    Text("Apply $recommendedProfile")
+                }
+            } else {
+                Button(onClick = { showMenu = true }) {
+                    Text(stringResource(R.string.app_list_apply_fix_profile_button))
+                }
+                DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
+                    availableProfiles.forEach { profile ->
+                        DropdownMenuItem(onClick = {
+                            appListViewModel.applyFixProfileForSelectedApps(context, profile)
+                            showMenu = false
+                        }, text = { Text(profile) })
                     }
                 }
             }
@@ -84,7 +185,54 @@ private fun AppListView(apps: List<AppInfo>, context: Context) {
     }
 }
 
-// Function to open the specific settings screen for a given app
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun AppListView(
+    modifier: Modifier = Modifier,
+    apps: List<AppInfo>,
+    context: Context,
+    navController: NavController,
+    appListViewModel: AppListViewModel,
+    isSelectionModeActive: Boolean
+) {
+    LazyColumn(modifier = modifier) {
+        items(apps) { app ->
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp)
+                    .pointerInput(Unit) {
+                        detectTapGestures(
+                            onLongPress = { appListViewModel.activateSelectionAndToggle(app) },
+                            onTap = {
+                                if (isSelectionModeActive) {
+                                    appListViewModel.toggleAppSelection(app)
+                                }
+                            }
+                        )
+                    },
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            ) {
+                Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                    if (isSelectionModeActive) {
+                        Checkbox(checked = app.isSelected, onCheckedChange = { appListViewModel.toggleAppSelection(app) })
+                        Spacer(modifier = Modifier.width(16.dp))
+                    }
+                    Text(text = app.name, modifier = Modifier.weight(1f))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Button(onClick = { openAppSettings(context, app.packageName) }) {
+                        Text(stringResource(R.string.app_list_settings_button))
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    IconButton(onClick = { navController.navigate("app_control_screen/${app.packageName}") }) {
+                        Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.app_list_manage_button))
+                    }
+                }
+            }
+        }
+    }
+}
+
 private fun openAppSettings(context: Context, packageName: String) {
     val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
         data = Uri.fromParts("package", packageName, null)

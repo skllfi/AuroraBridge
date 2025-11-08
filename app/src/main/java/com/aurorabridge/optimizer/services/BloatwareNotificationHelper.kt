@@ -6,7 +6,7 @@ import android.content.Context
 import android.os.Build
 import androidx.core.app.NotificationCompat
 
-object NotificationHelper {
+object BloatwareNotificationHelper {
 
     private const val CHANNEL_ID = "bloatware_channel"
     private const val NOTIFICATION_ID = 1

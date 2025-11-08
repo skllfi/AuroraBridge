@@ -1,74 +1,36 @@
 <resources>
-    <string name="app_name">Aurora Bridge</string>
-    <string name="home_instructions">ADB Instructions</string>
-    <string name="home_diagnostics">Run Diagnostics</string>
-    <string name="home_adb_companion">ADB Companion</string>
-    <string name="home_app_list">App List</string>
-    <string name="home_settings">Brand Auto-Optimize / Settings</string>
-    <string name="app_list_title">User Installed Apps</string>
-    <string name="app_list_no_apps">No user-installed apps found.</string>
-    <string name="app_list_settings_button">Settings</string>
-    <string name="diagnostics_title">Diagnostics</string>
-    <string name="diagnostics_report_title">Diagnostics Report</string>
-    <string name="diagnostics_close_button">Close</string>
-    <string name="diagnostics_warning_title">Warning!</string>
-    <string name="diagnostics_warning_message">Running diagnostics may involve executing ADB commands that could affect your device’s performance or stability. Proceed with caution.</string>
-    <string name="diagnostics_run_button">Run ADB Analyzer</string>
-    <string name="diagnostics_found_limiters">Found limiters: %s</string>
-    <string name="diagnostics_export_button">Export Report</string>
-    <string name="diagnostics_back_button">Back</string>
-    <string name="adb_companion_title">ADB Companion</string>
-    <string name="adb_companion_warning_message">Using ADB features can cause your device to become unstable. Use at your own risk.</string>
-    <string name="adb_companion_apply_profile_button">Apply '%s' Profile</string>
-    <string name="adb_companion_enable_wifi_button">Enable Wi-Fi ADB</string>
-    <string name="adb_companion_disable_wifi_button">Disable Wi-Fi ADB</string>
-    <string name="settings_title">Brand Auto-Optimize / Settings</string>
-    <string name="settings_warning_message">Auto-optimization for your brand may modify system settings that could impact device performance and stability. This feature will attempt to apply brand-specific optimizations for your device (%s).</string>
-    <string name="settings_enable_autostart">Enable Autostart</string>
-    <string name="settings_enable_background_work">Enable Background Work</string>
-    <string name="settings_detected_brand">Detected Brand: %s</string>
-    <string name="settings_run_brand_optimization">Run %s Auto-Optimize</string>
-    <string name="settings_create_backup">Create Restore Point</string>
-    <string name="settings_restore_backup">Restore from Backup</string>
-    <string name="settings_export_logs">Export diagnostics/logs</string>
-    <string name="settings_set_language_button">Set Language</string>
-    <string name="settings_backup_created">Restore point created</string>
-    <string name="settings_backup_failed">Failed to create restore point</string>
-    <string name="settings_restore_success">Settings restored</string>
-    <string name="settings_restore_failed">Failed to restore settings</string>
-    <string name="settings_brand_optimization_toast">Attempting to apply brand-specific optimizations for %s</string>
-    <string name="instructions_title">ADB Activation Instructions</string>
-    <string name="instructions_step1_title">Step 1: Enable Developer Options</string>
-    <string name="instructions_step1_1">Go to Settings on your Android device.</string>
-    <string name="instructions_step1_2">Scroll down and tap on 'About phone'.</string>
-    <string name="instructions_step1_3">Find 'Build number' and tap on it 7 times until you see a message that says 'You are now a developer!'.</string>
-    <string name="instructions_step2_title">Step 2: Enable USB Debugging</string>
-    <string name="instructions_step2_1">Go back to the main Settings menu.</string>
-    <string name="instructions_step2_2">Tap on 'System', then 'Developer options'.</string>
-    <string name="instructions_step2_3">Find and enable 'USB debugging'.</string>
-    <string name="instructions_step3_title">Step 3: Enable Wireless Debugging</string>
-    <string name="instructions_step3_1">In 'Developer options', find and enable 'Wireless debugging'.</string>
-    <string name="instructions_step3_2">Connect your device to your computer with a USB cable.</string>
-    <string name="instructions_step3_3">Open a terminal or command prompt on your computer and run 'adb tcpip 5555'.</string>
-    <string name="instructions_step3_4">You can now disconnect the USB cable.</string>
-    <string name="instructions_step3_5">Find your device's IP address in Settings > About phone > Status > IP address.</string>
-    <string name="instructions_step3_6">In the terminal, run 'adb connect [device_ip_address]:5555'.</string>
+    <string name="app_name">AuroraBridge Optimizer</string>
+    <string name="home_title">Home</string>
+    <string name="settings_title">Settings</string>
+    <string name="app_manager_title">App Manager</string>
 
-    <!-- ADB Activation Guide -->
-    <string name="adb_guide_title">ADB Activation Guide</string>
-    <string name="adb_guide_step1_title">Step 1: Open Developer Options</string>
-    <string name="adb_guide_step1_desc">To begin, you need to enable Developer Options on your device. Click the button below to open the system settings.</string>
-    <string name="adb_guide_step2_title">Step 2: Find Build Number</string>
-    <string name="adb_guide_step2_desc">In the 'About phone' section, locate the 'Build number' and tap it 7 times in a row.</string>
-    <string name="adb_guide_step3_title">Step 3: Enable USB Debugging</string>
-    <string name="adb_guide_step3_desc">Now that you are a developer, go back to the main settings page, find 'Developer options', and enable 'USB debugging'.</string>
-    <string name="adb_guide_open_settings">Open Settings</string>
-    <string name="adb_guide_previous">Previous</string>
-    <string name="adb_guide_next">Next</string>
-    <string name="adb_guide_finish">Finish</string>
-    <string name="adb_guide_dev_options_enabled_title">Developer Options Already Enabled</string>
-    <string name="adb_guide_dev_options_enabled_desc">It looks like you already have developer options enabled. Would you like to skip to the last step?</string>
-    <string name="adb_guide_skip_to_last_step">Skip</string>
-    <string name="adb_guide_stay_in_guide">Stay</string>
+    <string name="text_field_label_command">ADB Command</string>
+    <string name="button_run">Run</string>
+    <string name="text_field_label_output">Output</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_brand_optimization_dialog_title">Run Optimization</string>
+    <string name="settings_brand_optimization_dialog_message">The following commands will be executed:</string>
+    <string name="settings_backup_created">Restore point created successfully.</string>
+    <string name="settings_backup_failed">Failed to create restore point.</string>
+    <string name="settings_restore_success">Restored from backup successfully.</string>
+    <string name="settings_restore_failed">Failed to restore from backup.</string>
+
+    <!-- Auto-Optimization -->
+    <string name="auto_optimization_notification_title">Device Optimization</string>
+    <string name="auto_optimization_notification_channel_name">Optimization Status</string>
+    <string name="auto_optimization_notification_success">Device optimization commands applied successfully.</string>
+
+    <!-- Xiaomi -->
+    <string name="xiaomi_description">Disables system tracing and other debugging features that can impact performance.</string>
+
+    <!-- Google -->
+    <string name="google_description">Optimizes task scheduling and graphics rendering for a smoother experience.</string>
+
+    <!-- Samsung -->
+    <string name="samsung_description">Adjusts thermal management and CPU frequency scaling to reduce throttling.</string>
+
+    <!-- OnePlus -->
+    <string name="oneplus_description">Disables unnecessary background processes and logging for better battery life.</string>
 
 </resources>

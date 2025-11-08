@@ -8,6 +8,10 @@
     <string name="app_list_title">Установленные пользователем приложения</string>
     <string name="app_list_no_apps">Не найдено приложений, установленных пользователем.</string>
     <string name="app_list_settings_button">Настройки</string>
+    <string name="app_list_manage_button">Управлять</string>
+    <string name="app_list_disable_optimization_button">Отключить оптимизацию батареи</string>
+    <string name="app_list_uninstall_button">Удалить</string>
+    <string name="app_list_apply_fix_profile_button">Применить профиль исправлений</string>
     <string name="diagnostics_title">Диагностика</string>
     <string name="diagnostics_report_title">Отчет о диагностике</string>
     <string name="diagnostics_close_button">Закрыть</string>
@@ -17,11 +21,19 @@
     <string name="diagnostics_found_limiters">Найдены ограничители: %s</string>
     <string name="diagnostics_export_button">Экспортировать отчет</string>
     <string name="diagnostics_back_button">Назад</string>
+    <string name="diagnostics_share_title">Поделиться отчетом о диагностике</string>
     <string name="adb_companion_title">Компаньон ADB</string>
     <string name="adb_companion_warning_message">Использование функций ADB может привести к нестабильной работе вашего устройства. Используйте на свой страх и риск.</string>
     <string name="adb_companion_apply_profile_button">Применить профиль '%s'</string>
     <string name="adb_companion_enable_wifi_button">Включить Wi-Fi ADB</string>
     <string name="adb_companion_disable_wifi_button">Отключить Wi-Fi ADB</string>
+
+    <!-- Диалог подтверждения в ADB Companion -->
+    <string name="adb_companion_confirm_dialog_title">Подтвердите действие</string>
+    <string name="adb_companion_confirm_dialog_message">Вы уверены, что хотите применить профиль '%s'? Это может изменить системные настройки.</string>
+    <string name="adb_companion_confirm_dialog_confirm_button">Подтвердить</string>
+    <string name="adb_companion_confirm_dialog_dismiss_button">Отмена</string>
+
     <string name="settings_title">Авто-оптимизация / Настройки</string>
     <string name="settings_warning_message">Автоматическая оптимизация для вашего бренда может изменять системные настройки, которые могут повлиять на производительность и стабильность устройства. Эта функция попытается применить оптимизации, специфичные для вашего устройства (%s).</string>
     <string name="settings_enable_autostart">Включить автозапуск</string>
@@ -31,12 +43,17 @@
     <string name="settings_create_backup">Создать точку восстановления</string>
     <string name="settings_restore_backup">Восстановить из резервной копии</string>
     <string name="settings_export_logs">Экспортировать диагностику/логи</string>
-    <string name="settings_set_language_button">Установить язык (не реализовано)</string>
+    <string name="settings_set_language_button">Установить язык</string>
     <string name="settings_backup_created">Точка восстановления создана</string>
     <string name="settings_backup_failed">Не удалось создать точку восстановления</string>
     <string name="settings_restore_success">Настройки восстановлены</string>
     <string name="settings_restore_failed">Не удалось восстановить настройки</string>
-    <string name="settings_brand_optimization_toast">Попытка применить специфичные для бренда оптимизации для %s</string>
+    <string name="settings_language_update_restarting">Язык обновлен. Перезапуск...</string>
+    <string name="settings_brand_optimization_dialog_title">Подтвердите оптимизацию</string>
+    <string name="settings_brand_optimization_dialog_message">Для оптимизации вашего устройства будут выполнены следующие команды. Это может изменить системные настройки. Вы хотите продолжить?</string>
+    <string name="settings_brand_optimization_dialog_confirm_button">Запустить</string>
+    <string name="settings_brand_optimization_dialog_cancel_button">Отмена</string>
+    <string name="auto_optimize_on_startup">Авто-оптимизация при запуске</string>
     <string name="instructions_title">Инструкции по активации ADB</string>
     <string name="instructions_step1_title">Шаг 1: Включите параметры разработчика</string>
     <string name="instructions_step1_1">Перейдите в «Настройки» на вашем устройстве Android.</string>
@@ -54,21 +71,81 @@
     <string name="instructions_step3_5">Найдите IP-адрес вашего устройства в меню «Настройки» > «О телефоне» > «Состояние» > «IP-адрес».</string>
     <string name="instructions_step3_6">В терминале выполните команду «adb connect [IP-адрес_устройства]:5555».</string>
 
-    <string name="adb_guide_dev_options_enabled_title">Параметры разработчика уже включены</string>
-    <string name="adb_guide_dev_options_enabled_desc">Похоже, у вас уже включены параметры разработчика. Хотите перейти к последнему шагу?</string>
-    <string name="adb_guide_skip_to_last_step">Пропустить</string>
-    <string name="adb_guide_stay_in_guide">Остаться</string>
-
-    <!-- Руководство по активации ADB -->
+    <!-- Руководство по активации ADB (обновленное) -->
     <string name="adb_guide_title">Руководство по активации ADB</string>
-    <string name="adb_guide_step1_title">Шаг 1: Откройте «Параметры разработчика»</string>
-    <string name="adb_guide_step1_desc">Для начала вам необходимо включить «Параметры разработчика» на вашем устройстве. Нажмите кнопку ниже, чтобы открыть системные настройки.</string>
-    <string name="adb_guide_step2_title">Шаг 2: Найдите «Номер сборки»</string>
-    <string name="adb_guide_step2_desc">В разделе «О телефоне» найдите «Номер сборки» и нажмите на него 7 раз подряд.</string>
-    <string name="adb_guide_step3_title">Шаг 3: Включите «Отладку по USB»</string>
-    <string name="adb_guide_step3_desc">Теперь, когда вы стали разработчиком, вернитесь на главную страницу настроек, найдите «Параметры разработчика» и включите «Отладку по USB».</string>
-    <string name="adb_guide_open_settings">Открыть настройки</string>
+    <string name="adb_guide_step0_title">Шаг 0: Установите ADB на свой компьютер</string>
+    <string name="adb_guide_step0_desc">Прежде чем начать, вам необходимо установить ADB (Android Debug Bridge) на свой компьютер. Вы можете загрузить последние версии Platform Tools, которые включают ADB, с официального сайта для разработчиков Android.</string>
+    <string name="adb_guide_open_platform_tools">Скачать Platform Tools</string>
+    <string name="adb_guide_step1_title">Шаг 1: Перейдите в «О телефоне»</string>
+    <string name="adb_guide_step1_desc">Сначала нам нужно найти номер сборки вашего устройства. Нажмите кнопку ниже, чтобы перейти в настройки вашего устройства, затем найдите и нажмите «О телефоне».</string>
+    <string name="adb_guide_step2_title">Шаг 2: Активируйте «Параметры разработчика»</string>
+    <string name="adb_guide_step2_desc">На экране «О телефоне» найдите «Номер сборки» и нажмите на него 7 раз подряд. Вы увидите сообщение, подтверждающее, что вы стали разработчиком.</string>
+    <string name="adb_guide_step3_title">Шаг 3: Откройте «Параметры разработчика»</string>
+    <string name="adb_guide_step3_desc">Теперь, когда вы разблокировали режим разработчика, вы можете получить к нему доступ. Нажмите кнопку ниже, чтобы перейти на экран «Параметры разработчика». Вы можете найти его в меню «Система».</string>
+    <string name="adb_guide_step4_title">Шаг 4: Включите «Отладку по USB»</string>
+    <string name="adb_guide_step4_desc">В «Параметрах разработчика» найдите переключатель «Отладка по USB» и включите его. Возможно, вам потребуется подтвердить это действие на вашем устройстве.</string>
+    <string name="adb_guide_step5_title">Шаг 5: Включите «Беспроводную отладку»</string>
+    <string name="adb_guide_step5_desc">Для полностью беспроводного опыта также включите «Беспроводную отладку». Это позволит вам подключаться к вашему устройству по Wi-Fi для операций ADB.</string>
+    <string name="adb_guide_open_settings">Открыть настройки устройства</string>
+    <string name="adb_guide_open_developer_settings">Открыть «Параметры разработчика»</string>
     <string name="adb_guide_previous">Назад</string>
     <string name="adb_guide_next">Далее</string>
-    <string name="adb_guide_finish">Завершить</string>
+    <string name="adb_guide_finish">Готово</string>
+    <string name="adb_guide_dev_options_enabled_title">«Параметры разработчика» уже включены</string>
+    <string name="adb_guide_dev_options_enabled_desc">Похоже, у вас уже включены «Параметры разработчика». Хотите перейти к шагам отладки?</string>
+    <string name="adb_guide_skip_to_last_step">Перейти</string>
+    <string name="adb_guide_stay_in_guide">Остаться здесь</string>
+
+    <!-- Устранение неполадок -->
+    <string name="troubleshooting_title">Устранение неполадок</string>
+    <string name="troubleshooting_dev_options_not_visible">Параметры разработчика не видны</string>
+    <string name="troubleshooting_dev_options_not_visible_desc">Если вы нажали на номер сборки 7 раз, а параметры разработчика все еще не видны, попробуйте перезагрузить устройство. На некоторых устройствах меню параметров разработчика скрыто в другом месте. Попробуйте поискать «Параметры разработчика» в настройках.</string>
+    <string name="troubleshooting_device_not_connecting">Устройство не подключается</string>
+    <string name="troubleshooting_device_not_connecting_desc">Если ваше устройство не подключается через ADB, убедитесь, что на вашем компьютере установлены правильные драйверы. Обычно их можно загрузить с веб-сайта производителя вашего устройства. Также попробуйте использовать другой USB-кабель и порт.</string>
+
+    <!-- Сведения об ограничителе -->
+    <string name="limiter_powergenie_name">PowerGenie (Huawei/Honor)</string>
+    <string name="limiter_powergenie_desc">PowerGenie — это агрессивный менеджер фоновых процессов, который используется на устройствах Huawei и Honor. Он может преждевременно завершать фоновые приложения для экономии заряда батареи, но это может мешать работе обычных приложений.</string>
+    <string name="limiter_powergenie_solution">Рекомендуемое решение — отключить PowerGenie с помощью команды ADB: `adb shell pm disable-user com.huawei.powergenie`. Это предотвратит завершение фоновых процессов.</string>
+    <string name="limiter_miui_name">MIUI (Xiaomi)</string>
+    <string name="limiter_miui_desc">MIUI, пользовательская оболочка Android от Xiaomi, включает в себя агрессивные функции экономии заряда батареи, которые могут убивать фоновые приложения. Это часто является причиной задержки или отсутствия уведомлений.</string>
+    <string name="limiter_miui_solution">Чтобы решить эту проблему, вам необходимо отключить оптимизацию батареи MIUI для затронутого приложения. Обычно это можно сделать в настройках устройства в разделе «Батарея и производительность» -> «Управление использованием батареи приложениями». Выберите приложение и выберите «Без ограничений».</string>
+    <string name="limiter_duraspeed_name">DuraSpeed (MediaTek)</string>
+    <string name="limiter_duraspeed_desc">DuraSpeed — это функция на устройствах MediaTek, которая ограничивает фоновые процессы. Хотя это может экономить заряд батареи, это также может задерживать или предотвращать уведомления.</string>
+    <string name="limiter_duraspeed_solution">DuraSpeed обычно можно отключить в настройках вашего устройства. Ищите его в разделах "Батарея" или "Интеллектуальный помощник".</string>
+    <string name="limiter_hibernation_name">Гибернация приложений</string>
+    <string name="limiter_hibernation_desc">Некоторые кастомные прошивки или оболочки производителей включают функцию "Гибернация приложений", которая "замораживает" приложения, которые не использовались в последнее время. Это может помешать им работать в фоновом режиме.</string>
+    <string name="limiter_hibernation_solution">Проверьте настройки батареи или энергосбережения вашего устройства на наличие функции "гибернации" или "заморозки". Возможно, вам потребуется внести важные приложения в белый список, чтобы предотвратить их "замораживание".</string>
+    <string name="limiter_aggressive_doze_name">Агрессивный режим Doze</string>
+    <string name="limiter_aggressive_doze_desc">Doze — это стандартная функция Android, которая экономит заряд батареи, откладывая фоновые задачи, когда ваше устройство неактивно. Однако некоторые производители используют более агрессивные настройки, которые могут мешать работе приложений.</string>
+    <string name="limiter_aggressive_doze_solution">Вы можете настроить параметры Doze с помощью команд ADB. Распространенное решение — отключить режим легкого сна с помощью `adb shell dumpsys deviceidle disable light`.</string>
+
+    <!-- Управление приложением -->
+    <string name="app_control_title">Управление приложением</string>
+    <string name="app_control_disable_battery_optimization">Отключить оптимизацию батареи</string>
+
+    <!-- Предупреждение для пользователя -->
+    <string name="user_warning_title">Предупреждение</string>
+    <string name="user_warning_message">Это приложение использует ADB для изменения системных настроек. Это может быть рискованно и привести к неожиданному поведению, аннулированию гарантии или даже повреждению вашего устройства. Всегда создавайте резервные копии данных перед внесением изменений. Используя это приложение, вы признаете и принимаете эти риски.</string>
+    <string name="user_warning_accept">Я понимаю и принимаю риски</string>
+    <string name="user_warning_decline">Выйти</string>
+
+    <!-- Notifications -->
+    <string name="notification_channel_name">Оповещения системного оптимизатора</string>
+    <string name="notification_channel_description">Уведомления о системных ограничителях и других проблемах оптимизации.</string>
+    <string name="notification_limiters_found_title">Обнаружены системные ограничители</string>
+    <string name="notification_limiters_found_content">Найденные ограничители: %1$s. Нажмите, чтобы просмотреть и принять меры.</string>
+    <string name="auto_optimization_notification_title">Авто-оптимизация завершена</string>
+    <string name="auto_optimization_notification_success">Оптимизация устройства успешно применена.</string>
+    <string name="auto_optimization_notification_failure">Не удалось применить оптимизацию устройства.</string>
+
+    <!-- Brand-Specific Optimization Descriptions -->
+    <string name="optimization_desc_xiaomi">Отключает специфичные для MIUI оптимизации батареи, которые могут мешать работе фоновых приложений.</string>
+    <string name="optimization_desc_huawei">Отключает PowerGenie, агрессивный менеджер фоновых процессов на устройствах Huawei.</string>
+    <string name="optimization_desc_pixel">Настраивает системные параметры для повышения производительности и времени автономной работы на устройствах Google Pixel.</string>
+    <string name="optimization_desc_samsung">Оптимизирует специфичные для Samsung настройки для уменьшения фоновых ограничений.</string>
+    <string name="optimization_desc_oneplus">Изменяет специфичные для OnePlus функции управления батареей для повышения производительности приложений.</string>
+    <string name="optimization_desc_oppo">Настраивает специфичные для Oppo параметры энергосбережения, которые могут завершать фоновые процессы.</string>
+    <string name="optimization_desc_vivo">Изменяет специфичные для Vivo оптимизации батареи, чтобы приложения могли более свободно работать в фоновом режиме.</string>
+    <string name="optimization_desc_realme">Отключает специфичные для Realme функции экономии заряда батареи, которые могут мешать работе приложений.</string>
 </resources>

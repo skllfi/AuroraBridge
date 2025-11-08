@@ -15,6 +15,9 @@ class AdbViewModel : ViewModel() {
     private val _status = MutableStateFlow("idle")
     val status: StateFlow<String> = _status.asStateFlow()
 
+    private val _showConfirmDialog = MutableStateFlow<String?>(null)
+    val showConfirmDialog: StateFlow<String?> = _showConfirmDialog.asStateFlow()
+
     fun enableAdbWifi() {
         CoroutineScope(Dispatchers.IO).launch {
             val ok = AdbConnectionManager.enableAdbWifi()
@@ -23,6 +26,12 @@ class AdbViewModel : ViewModel() {
     }
 
     fun runProfile(name: String) {
+        // Don't run directly, show dialog first
+        _showConfirmDialog.value = name
+    }
+
+    fun confirmRunProfile(name: String) {
+        _showConfirmDialog.value = null // Hide dialog
         CoroutineScope(Dispatchers.IO).launch {
             val results = when(name) {
                 "huawei" -> AdbOptimizer.runCommands(AdbProfiles.HuaweiFix)
@@ -32,5 +41,9 @@ class AdbViewModel : ViewModel() {
             // just update status for now
             _status.emit("profile_run:${name}")
         }
+    }
+
+    fun dismissDialog() {
+        _showConfirmDialog.value = null
     }
 }

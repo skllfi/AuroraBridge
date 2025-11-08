@@ -11,15 +11,31 @@ import kotlinx.coroutines.launch
 
 class AdbCompanionViewModel : ViewModel() {
 
-    private val _uiState = MutableStateFlow<AdbCompanionUiState>(AdbCompanionUiState.Idle)
+    private val _uiState = MutableStateFlow<AdbCompanionUiState>(AdbCompanionUiState.RequiresConfirmation)
     val uiState: StateFlow<AdbCompanionUiState> = _uiState.asStateFlow()
 
+    private val _showConfirmDialog = MutableStateFlow<String?>(null)
+    val showConfirmDialog: StateFlow<String?> = _showConfirmDialog.asStateFlow()
+
+    fun onWarningConfirmed() {
+        _uiState.value = AdbCompanionUiState.Idle
+    }
+
     fun applyOptimizationProfile(profileName: String) {
+        _showConfirmDialog.value = profileName
+    }
+
+    fun confirmApplyOptimizationProfile(profileName: String) {
+        _showConfirmDialog.value = null
         viewModelScope.launch {
             _uiState.value = AdbCompanionUiState.Loading
             val result = AdbOptimizer.applyProfile(profileName)
             _uiState.value = AdbCompanionUiState.Success("Applied profile '$profileName' with result: $result")
         }
+    }
+
+    fun dismissDialog() {
+        _showConfirmDialog.value = null
     }
 
     fun enableAdbWifi() {
@@ -40,6 +56,7 @@ class AdbCompanionViewModel : ViewModel() {
 }
 
 sealed interface AdbCompanionUiState {
+    object RequiresConfirmation : AdbCompanionUiState
     object Idle : AdbCompanionUiState
     object Loading : AdbCompanionUiState
     data class Success(val message: String) : AdbCompanionUiState

@@ -15,7 +15,7 @@ class AppMonitorWorker(private val appContext: Context, params: WorkerParameters
 
         return try {
             // Create notification channel (important for Android 8.0+)
-            NotificationHelper.createNotificationChannel(appContext)
+            BloatwareNotificationHelper.createNotificationChannel(appContext)
 
             // Get the list of installed apps
             val installedPackages = getInstalledPackages()
@@ -29,7 +29,7 @@ class AppMonitorWorker(private val appContext: Context, params: WorkerParameters
                 // Create and show a notification
                 val notificationTitle = "Bloatware Detected"
                 val notificationContent = "Found ${foundBloatware.size} potential bloatware apps. Check the App List for details."
-                NotificationHelper.showNotification(appContext, notificationTitle, notificationContent)
+                BloatwareNotificationHelper.showNotification(appContext, notificationTitle, notificationContent)
             } else {
                 Log.i(TAG, "No known bloatware apps found.")
             }

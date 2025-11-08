@@ -1,6 +1,5 @@
 package com.aurorabridge.optimizer.ui.screens
 
-import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.*
@@ -15,8 +14,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.aurorabridge.optimizer.R
 import com.aurorabridge.optimizer.adb.AdbProfiles
+import com.aurorabridge.optimizer.ui.components.UserWarningDialog
 import com.aurorabridge.optimizer.ui.vm.AdbCompanionUiState
 import com.aurorabridge.optimizer.ui.vm.AdbCompanionViewModel
+import kotlinx.coroutines.launch
 
 @Composable
 fun AdbCompanionScreen(
@@ -25,57 +26,86 @@ fun AdbCompanionScreen(
 ) {
     val uiState by adbCompanionViewModel.uiState.collectAsState()
     val profileNames = remember { AdbProfiles.getProfileNames() }
-    val context = LocalContext.current
+    val showDialog by adbCompanionViewModel.showConfirmDialog.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
-    Scaffold(topBar = { TopAppBar(title = { Text(stringResource(R.string.adb_companion_title)) }) }) { padding ->
-        Column(modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp)) {
-            Card(modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = stringResource(R.string.diagnostics_warning_title),
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Red
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = stringResource(R.string.adb_companion_warning_message)
-                    )
+    showDialog?.let { profileName ->
+        AlertDialog(
+            onDismissRequest = { adbCompanionViewModel.dismissDialog() },
+            title = { Text(stringResource(R.string.adb_companion_confirm_dialog_title)) },
+            text = { Text(stringResource(R.string.adb_companion_confirm_dialog_message, profileName)) },
+            confirmButton = {
+                Button(
+                    onClick = { adbCompanionViewModel.confirmApplyOptimizationProfile(profileName) })
+                {
+                    Text(stringResource(R.string.adb_companion_confirm_dialog_confirm_button))
+                }
+            },
+            dismissButton = {
+                Button(onClick = { adbCompanionViewModel.dismissDialog() }) {
+                    Text(stringResource(R.string.adb_companion_confirm_dialog_dismiss_button))
                 }
             }
+        )
+    }
 
-            when (val state = uiState) {
-                is AdbCompanionUiState.Idle, is AdbCompanionUiState.Success, is AdbCompanionUiState.Error -> {
-                    if (state is AdbCompanionUiState.Success) {
-                        Toast.makeText(context, state.message, Toast.LENGTH_SHORT).show()
-                    } else if (state is AdbCompanionUiState.Error) {
-                        Toast.makeText(context, state.message, Toast.LENGTH_LONG).show()
-                    }
+    LaunchedEffect(uiState) {
+        (uiState as? AdbCompanionUiState.Success)?.let {
+            scope.launch {
+                snackbarHostState.showSnackbar(it.message)
+            }
+        }
+        (uiState as? AdbCompanionUiState.Error)?.let {
+            scope.launch {
+                snackbarHostState.showSnackbar(it.message, withDismissAction = true)
+            }
+        }
+    }
 
-                    LazyColumn(modifier = Modifier.fillMaxWidth()) {
-                        items(profileNames.size) { index ->
-                            val profileName = profileNames[index]
-                            Button(
-                                onClick = { adbCompanionViewModel.applyOptimizationProfile(profileName) },
-                                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
-                            ) {
-                                Text(stringResource(R.string.adb_companion_apply_profile_button, profileName))
+    Scaffold(
+        topBar = { TopAppBar(title = { Text(stringResource(R.string.adb_companion_title)) }) },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+    ) { padding ->
+        Column(modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp)) {
+
+            when (uiState) {
+                AdbCompanionUiState.RequiresConfirmation -> {
+                    UserWarningDialog(
+                        title = stringResource(id = R.string.user_warning_title),
+                        message = stringResource(id = R.string.adb_companion_warning_message),
+                        onConfirm = { adbCompanionViewModel.onWarningConfirmed() },
+                        onDismiss = { navController.popBackStack() })
+                }
+
+                else -> {
+
+                    if (uiState is AdbCompanionUiState.Loading) {
+                        CircularProgressIndicator()
+                    } else {
+                        LazyColumn(modifier = Modifier.fillMaxWidth()) {
+                            items(profileNames.size) { index ->
+                                val profileName = profileNames[index]
+                                Button(
+                                    onClick = { adbCompanionViewModel.applyOptimizationProfile(profileName) },
+                                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                                ) {
+                                    Text(stringResource(R.string.adb_companion_apply_profile_button, profileName))
+                                }
                             }
                         }
                     }
-                }
-                is AdbCompanionUiState.Loading -> {
-                    CircularProgressIndicator()
-                }
-            }
 
-            Spacer(Modifier.height(16.dp))
+                    Spacer(Modifier.height(16.dp))
 
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                Button(onClick = { adbCompanionViewModel.enableAdbWifi() }) {
-                    Text(stringResource(R.string.adb_companion_enable_wifi_button))
-                }
-                Button(onClick = { adbCompanionViewModel.disableAdbWifi() }) {
-                    Text(stringResource(R.string.adb_companion_disable_wifi_button))
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                        Button(onClick = { adbCompanionViewModel.enableAdbWifi() }) {
+                            Text(stringResource(R.string.adb_companion_enable_wifi_button))
+                        }
+                        Button(onClick = { adbCompanionViewModel.disableAdbWifi() }) {
+                            Text(stringResource(R.string.adb_companion_disable_wifi_button))
+                        }
+                    }
                 }
             }
 
