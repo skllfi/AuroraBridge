@@ -38,11 +38,13 @@ class SettingsViewModel : ViewModel() {
             val hasBackup = BackupManager.hasBackup(context)
             val autoOptimizeEnabled = settingsManager.isAutoOptimizeOnStartupEnabled()
             val safeModeEnabled = settingsManager.isSafeModeEnabled()
+            val newFeaturesEnabled = settingsManager.isNewFeaturesEnabled()
             _uiState.value = SettingsUiState.Loaded(
                 profile = profile,
                 hasBackup = hasBackup,
                 autoOptimizeOnStartup = autoOptimizeEnabled,
-                safeModeEnabled = safeModeEnabled
+                safeModeEnabled = safeModeEnabled,
+                newFeaturesEnabled = newFeaturesEnabled
             )
         }
     }
@@ -108,6 +110,13 @@ class SettingsViewModel : ViewModel() {
         }
     }
 
+    fun onNewFeaturesEnabledChanged(enabled: Boolean) {
+        settingsManager.setNewFeaturesEnabled(enabled)
+        _uiState.update {
+            (it as SettingsUiState.Loaded).copy(newFeaturesEnabled = enabled)
+        }
+    }
+
     fun openUrl(context: Context, url: String) {
         val intent = Intent(Intent.ACTION_VIEW).apply {
             data = Uri.parse(url)
@@ -122,6 +131,7 @@ sealed interface SettingsUiState {
         val profile: OptimizationProfile?,
         val hasBackup: Boolean,
         val autoOptimizeOnStartup: Boolean,
-        val safeModeEnabled: Boolean
+        val safeModeEnabled: Boolean,
+        val newFeaturesEnabled: Boolean
     ) : SettingsUiState
 }

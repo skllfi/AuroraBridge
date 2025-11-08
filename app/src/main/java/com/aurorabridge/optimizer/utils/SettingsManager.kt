@@ -21,4 +21,12 @@ class SettingsManager(context: Context) {
     fun setSafeMode(enabled: Boolean) {
         sharedPreferences.edit().putBoolean("safe_mode", enabled).apply()
     }
+
+    fun isNewFeaturesEnabled(): Boolean {
+        return sharedPreferences.getBoolean("new_features_enabled", false)
+    }
+
+    fun setNewFeaturesEnabled(enabled: Boolean) {
+        sharedPreferences.edit().putBoolean("new_features_enabled", enabled).apply()
+    }
 }

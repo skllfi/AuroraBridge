@@ -11,11 +11,13 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
@@ -26,16 +28,19 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.aurorabridge.optimizer.model.DeviceBrand
 import com.aurorabridge.optimizer.ui.apps.AppManagerScreen
+import com.aurorabridge.optimizer.ui.apps.BackupHistoryRepository
 import com.aurorabridge.optimizer.ui.instructions.InstructionsScreen
 import com.aurorabridge.optimizer.ui.screens.AdbActivationGuide
 import com.aurorabridge.optimizer.ui.screens.AdbCompanionScreen
 import com.aurorabridge.optimizer.ui.screens.AppControlScreen
+import com.aurorabridge.optimizer.ui.screens.BackupHistoryScreen
 import com.aurorabridge.optimizer.ui.screens.CommandLoggerScreen
 import com.aurorabridge.optimizer.ui.screens.DiagnosticsScreen
 import com.aurorabridge.optimizer.ui.screens.HomeScreen
 import com.aurorabridge.optimizer.ui.screens.SettingsScreen
 import com.aurorabridge.optimizer.ui.screens.UserWarningScreen
 import com.aurorabridge.optimizer.ui.theme.AuroraTheme
+import com.aurorabridge.optimizer.ui.vm.BackupHistoryViewModelFactory
 import com.aurorabridge.optimizer.ui.vm.LanguageViewModel
 import com.aurorabridge.optimizer.utils.AdbCommander
 import com.aurorabridge.optimizer.utils.BrandAutoOptimizer
@@ -127,6 +132,12 @@ class MainActivity : ComponentActivity() {
                         composable(Screen.Home.route) { HomeScreen(navController) }
                         composable(Screen.Settings.route) { SettingsScreen(navController, languageViewModelFactory) }
                         composable(Screen.AppManager.route) { AppManagerScreen(navController) }
+                        composable("backup_history") {
+                            val context = LocalContext.current
+                            val repository = BackupHistoryRepository(context)
+                            val factory = BackupHistoryViewModelFactory(repository)
+                            BackupHistoryScreen(viewModel = viewModel(factory = factory))
+                        }
                     }
                 }
             }

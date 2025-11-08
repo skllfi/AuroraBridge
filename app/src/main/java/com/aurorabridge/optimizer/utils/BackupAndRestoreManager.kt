@@ -2,16 +2,22 @@ package com.aurorabridge.optimizer.utils
 
 import android.content.Context
 import com.aurorabridge.optimizer.adb.AdbCommander
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class BackupData(
+    val timestamp: Long,
+    val settings: Map<String, String>
+)
 
 object BackupAndRestoreManager {
-
-    private const val BACKUP_FILE_NAME = "optimizer_backup.properties"
-    private const val TIMESTAMP_KEY = "backup_timestamp"
 
     /**
      * Creates a snapshot of current settings based on a list of settings keys.
@@ -34,19 +40,17 @@ object BackupAndRestoreManager {
     }
 
     /**
-     * Saves the backup data to a private file, including a timestamp.
+     * Saves the backup data to a private file in JSON format with a timestamp in the filename.
      */
-    fun saveBackupToFile(context: Context, backupData: Map<String, String>): Boolean {
+    fun saveBackupToFile(context: Context, settingsData: Map<String, String>): Boolean {
+        val timestamp = System.currentTimeMillis()
+        val sdf = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
+        val fileName = "optimizer_backup_${sdf.format(Date(timestamp))}.json"
+        val backup = BackupData(timestamp, settingsData)
         return try {
-            val file = File(context.filesDir, BACKUP_FILE_NAME)
-            file.bufferedWriter().use { out ->
-                // Add timestamp to the backup
-                out.write("$TIMESTAMP_KEY=${System.currentTimeMillis()}\n")
-                backupData.forEach { (key, value) ->
-                    val sanitizedValue = value.replace("\n", "\\n")
-                    out.write("$key=$sanitizedValue\n")
-                }
-            }
+            val file = File(context.filesDir, fileName)
+            val jsonString = Json.encodeToString(backup)
+            file.writeText(jsonString)
             true
         } catch (e: IOException) {
             e.printStackTrace()
@@ -55,51 +59,18 @@ object BackupAndRestoreManager {
     }
 
     /**
-     * Reads the backup data from the file, excluding the timestamp.
+     * Reads the backup data from the JSON file.
      */
-    fun readBackupFromFile(context: Context): Map<String, String>? {
+    fun readBackupFromFile(file: File): Map<String, String>? {
         return try {
-            val file = File(context.filesDir, BACKUP_FILE_NAME)
             if (!file.exists()) return null
 
-            val backupData = mutableMapOf<String, String>()
-            file.bufferedReader().forEachLine { line ->
-                val parts = line.split("=", limit = 2)
-                if (parts.size == 2 && parts[0] != TIMESTAMP_KEY) {
-                    backupData[parts[0]] = parts[1].replace("\\n", "\n")
-                }
-            }
-            backupData
-        } catch (e: IOException) {
+            val jsonString = file.readText()
+            val backup = Json.decodeFromString<BackupData>(jsonString)
+            backup.settings
+        } catch (e: Exception) { // Catching a broader exception for JSON parsing issues
             e.printStackTrace()
             null
-        }
-    }
-    
-    /**
-     * Retrieves the timestamp of the last backup.
-     */
-    fun getBackupTimestamp(context: Context): String {
-        return try {
-            val file = File(context.filesDir, BACKUP_FILE_NAME)
-            if (!file.exists()) return "No backup found"
-
-            file.bufferedReader().useLines { lines ->
-                lines.forEach { line ->
-                    val parts = line.split("=", limit = 2)
-                    if (parts.size == 2 && parts[0] == TIMESTAMP_KEY) {
-                        val timestamp = parts[1].toLongOrNull()
-                        if (timestamp != null) {
-                            val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
-                            return@getBackupTimestamp "Last backup: ${sdf.format(Date(timestamp))}"
-                        }
-                    }
-                }
-            }
-            "No backup found"
-        } catch (e: IOException) {
-            e.printStackTrace()
-            "Error reading backup"
         }
     }
 

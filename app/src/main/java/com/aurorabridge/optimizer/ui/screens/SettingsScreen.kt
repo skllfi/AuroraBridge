@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Code
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.PowerSettingsNew
 import androidx.compose.material.icons.filled.Restore
@@ -94,6 +95,10 @@ fun SettingsScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
+                    BackupHistoryCard(navController = navController)
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
                     AutoOptimizeCard(
                         autoOptimizeOnStartup = state.autoOptimizeOnStartup,
                         onCheckedChange = { settingsViewModel.onAutoOptimizeOnStartupChanged(it) }
@@ -104,6 +109,13 @@ fun SettingsScreen(
                     SafeModeCard(
                         safeModeEnabled = state.safeModeEnabled,
                         onCheckedChange = { settingsViewModel.onSafeModeChanged(it) }
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    NewFeaturesCard(
+                        newFeaturesEnabled = state.newFeaturesEnabled,
+                        onCheckedChange = { settingsViewModel.onNewFeaturesEnabledChanged(it) }
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -170,6 +182,25 @@ private fun BackupCard(hasBackup: Boolean, onCreateBackup: () -> Unit, onRestore
 }
 
 @Composable
+private fun BackupHistoryCard(navController: NavController) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { navController.navigate("backup_history") }
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(Icons.Default.History, contentDescription = "Backup History")
+            Column(modifier = Modifier.weight(1f).padding(start = 16.dp)) {
+                Text(text = "Backup History", fontWeight = FontWeight.Bold)
+                Text(text = "View and restore from previous backups.")
+            }
+        }
+    }
+}
+
+@Composable
 private fun AutoOptimizeCard(autoOptimizeOnStartup: Boolean, onCheckedChange: (Boolean) -> Unit) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -193,6 +224,20 @@ private fun SafeModeCard(safeModeEnabled: Boolean, onCheckedChange: (Boolean) ->
                 Text(text = "Log commands without executing them.")
             }
             Switch(checked = safeModeEnabled, onCheckedChange = onCheckedChange)
+        }
+    }
+}
+
+@Composable
+private fun NewFeaturesCard(newFeaturesEnabled: Boolean, onCheckedChange: (Boolean) -> Unit) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Default.Code, contentDescription = "New Features")
+            Column(modifier = Modifier.weight(1f).padding(start = 16.dp)) {
+                Text(text = stringResource(id = R.string.new_features_toggle_title), fontWeight = FontWeight.Bold)
+                Text(text = stringResource(id = R.string.new_features_toggle_summary))
+            }
+            Switch(checked = newFeaturesEnabled, onCheckedChange = onCheckedChange)
         }
     }
 }

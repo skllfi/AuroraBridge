@@ -54,6 +54,11 @@
     <string name="settings_brand_optimization_dialog_confirm_button">Запустить</string>
     <string name="settings_brand_optimization_dialog_cancel_button">Отмена</string>
     <string name="auto_optimize_on_startup">Авто-оптимизация при запуске</string>
+
+    <!-- Переключатель Новых Функций -->
+    <string name="new_features_toggle_title">Включить новые функции</string>
+    <string name="new_features_toggle_summary">Включить экспериментальные функции, которые все еще находятся в разработке.</string>
+
     <string name="instructions_title">Инструкции по активации ADB</string>
     <string name="instructions_step1_title">Шаг 1: Включите параметры разработчика</string>
     <string name="instructions_step1_1">Перейдите в «Настройки» на вашем устройстве Android.</string>
@@ -62,7 +67,7 @@
     <string name="instructions_step2_title">Шаг 2: Включите отладку по USB</string>
     <string name="instructions_step2_1">Вернитесь в главное меню «Настройки».</string>
     <string name="instructions_step2_2">Нажмите «Система», затем «Параметры разработчика».</string>
-    <string name="instructions_step2_3">Найдите и включите «Отладка по USB».</string>
+    <string name="instructions_step2_3">Найдите и включите «Отладку по USB».</string>
     <string name="instructions_step3_title">Шаг 3: Включите беспроводную отладку</string>
     <string name="instructions_step3_1">В «Параметрах разработчика» найдите и включите «Беспроводная отладка».</string>
     <string name="instructions_step3_2">Подключите устройство к компьютеру с помощью USB-кабеля.</string>

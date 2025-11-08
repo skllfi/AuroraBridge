@@ -21,6 +21,10 @@
     <string name="auto_optimization_notification_channel_name">Optimization Status</string>
     <string name="auto_optimization_notification_success">Device optimization commands applied successfully.</string>
 
+    <!-- New Features Toggle -->
+    <string name="new_features_toggle_title">Enable New Features</string>
+    <string name="new_features_toggle_summary">Enable experimental features that are still under development.</string>
+
     <!-- Xiaomi -->
     <string name="xiaomi_description">Disables system tracing and other debugging features that can impact performance.</string>
 
