@@ -4,14 +4,18 @@ import android.app.Service
 import android.content.Intent
 import android.os.IBinder
 import com.aurorabridge.optimizer.optimizer.BrandAutoOptimizer
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 class OptimizationService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        BrandAutoOptimizer.getProfileForCurrentDevice()?.let {
-            BrandAutoOptimizer.applyOptimization(it)
+        GlobalScope.launch {
+            BrandAutoOptimizer.getProfileForCurrentDevice(applicationContext)?.let {
+                BrandAutoOptimizer.applyOptimization(applicationContext, it)
+            }
+            stopSelf()
         }
-        stopSelf()
         return START_NOT_STICKY
     }
 

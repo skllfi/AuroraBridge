@@ -4,13 +4,35 @@ import android.content.Context
 import android.os.Build
 import com.aurorabridge.optimizer.R
 import com.aurorabridge.optimizer.model.DeviceBrand
+import com.aurorabridge.optimizer.utils.AdbCommander
 import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
-class BrandAutoOptimizer {
+object BrandAutoOptimizer {
 
-    fun getDeviceBrand(): DeviceBrand {
+    fun getProfileForCurrentDevice(context: Context): OptimizationProfile? {
+        val brand = getDeviceBrand()
+        if (brand == DeviceBrand.UNKNOWN) return null
+
+        val commands = getOptimizationCommands(brand, context.packageName, context)
+        val description = getOptimizationDescription(brand, context)
+
+        return OptimizationProfile(
+            brandName = brand.name.toLowerCase().capitalize(),
+            description = description,
+            commands = commands
+        )
+    }
+
+    suspend fun applyOptimization(context: Context, profile: OptimizationProfile) {
+        val adbCommander = AdbCommander(context)
+        for (command in profile.commands) {
+            adbCommander.runAdbCommandAsync(command)
+        }
+    }
+
+    private fun getDeviceBrand(): DeviceBrand {
         return when (Build.MANUFACTURER.toLowerCase()) {
             "xiaomi" -> DeviceBrand.XIAOMI
             "huawei" -> DeviceBrand.HUAWEI
@@ -24,7 +46,7 @@ class BrandAutoOptimizer {
         }
     }
 
-    fun getOptimizationCommands(brand: DeviceBrand, packageName: String, context: Context): List<String> {
+    private fun getOptimizationCommands(brand: DeviceBrand, packageName: String, context: Context): List<String> {
         return try {
             val inputStream = context.resources.openRawResource(R.raw.brand_optimizations)
             val reader = BufferedReader(InputStreamReader(inputStream))
@@ -46,8 +68,8 @@ class BrandAutoOptimizer {
         }
     }
 
-    fun getOptimizationDescription(brand: DeviceBrand, context: Context): String {
-        val resourceId = when (brand) {
+    private fun getOptimizationDescription(brand: DeviceBrand, context: Context): Int {
+        return when (brand) {
             DeviceBrand.XIAOMI -> R.string.optimization_desc_xiaomi
             DeviceBrand.HUAWEI -> R.string.optimization_desc_huawei
             DeviceBrand.PIXEL -> R.string.optimization_desc_pixel
@@ -56,8 +78,7 @@ class BrandAutoOptimizer {
             DeviceBrand.OPPO -> R.string.optimization_desc_oppo
             DeviceBrand.VIVO -> R.string.optimization_desc_vivo
             DeviceBrand.REALME -> R.string.optimization_desc_realme
-            else -> 0
+            else -> R.string.empty
         }
-        return if (resourceId != 0) context.getString(resourceId) else ""
     }
 }

@@ -4,10 +4,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Security
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -85,6 +89,20 @@ fun LogEntryCard(entry: com.aurorabridge.optimizer.utils.CommandLogger.LogEntry)
                     style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.padding(start = 8.dp)
                 )
+                if (entry.isSafeMode) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Icon(
+                        imageVector = Icons.Default.Security,
+                        contentDescription = "Safe Mode",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(end = 4.dp)
+                    )
+                    Text(
+                        text = "Safe Mode",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
             Text(
                 text = entry.command,
@@ -92,7 +110,7 @@ fun LogEntryCard(entry: com.aurorabridge.optimizer.utils.CommandLogger.LogEntry)
                 modifier = Modifier.padding(top = 8.dp)
             )
             Text(
-                text = entry.output,
+                text = entry.details,
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier
                     .padding(top = 8.dp)

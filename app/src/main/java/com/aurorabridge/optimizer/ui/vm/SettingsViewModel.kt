@@ -2,7 +2,6 @@ package com.aurorabridge.optimizer.ui.vm
 
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -10,6 +9,7 @@ import com.aurorabridge.optimizer.R
 import com.aurorabridge.optimizer.optimizer.BrandAutoOptimizer
 import com.aurorabridge.optimizer.optimizer.OptimizationProfile
 import com.aurorabridge.optimizer.utils.BackupManager
+import com.aurorabridge.optimizer.utils.SettingsManager
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -29,15 +29,21 @@ class SettingsViewModel : ViewModel() {
     private val _snackbarMessage = MutableSharedFlow<String>()
     val snackbarMessage = _snackbarMessage.asSharedFlow()
 
-    private lateinit var sharedPreferences: SharedPreferences
+    private lateinit var settingsManager: SettingsManager
 
     fun loadInitialState(context: Context) {
-        sharedPreferences = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+        settingsManager = SettingsManager(context)
         viewModelScope.launch {
-            val profile = BrandAutoOptimizer.getProfileForCurrentDevice()
+            val profile = BrandAutoOptimizer.getProfileForCurrentDevice(context)
             val hasBackup = BackupManager.hasBackup(context)
-            val autoOptimizeEnabled = sharedPreferences.getBoolean("auto_optimize_on_startup", false)
-            _uiState.value = SettingsUiState.Loaded(profile, hasBackup, autoOptimizeEnabled)
+            val autoOptimizeEnabled = settingsManager.isAutoOptimizeOnStartupEnabled()
+            val safeModeEnabled = settingsManager.isSafeModeEnabled()
+            _uiState.value = SettingsUiState.Loaded(
+                profile = profile,
+                hasBackup = hasBackup,
+                autoOptimizeOnStartup = autoOptimizeEnabled,
+                safeModeEnabled = safeModeEnabled
+            )
         }
     }
 
@@ -49,7 +55,7 @@ class SettingsViewModel : ViewModel() {
         viewModelScope.launch {
             (_uiState.value as? SettingsUiState.Loaded)?.let {
                 it.profile?.let { profile ->
-                    BrandAutoOptimizer.applyOptimization(profile)
+                    BrandAutoOptimizer.applyOptimization(context, profile)
                     _snackbarMessage.emit(context.getString(R.string.auto_optimization_notification_success))
                 }
             }
@@ -67,8 +73,8 @@ class SettingsViewModel : ViewModel() {
                 val success = BackupManager.createBackup(context, it)
                 if (success) {
                     _snackbarMessage.emit(context.getString(R.string.settings_backup_created))
-                    _uiState.update { currentState ->
-                        (currentState as SettingsUiState.Loaded).copy(hasBackup = true)
+                    _uiState.update {
+                        (it as SettingsUiState.Loaded).copy(hasBackup = true)
                     }
                 } else {
                     _snackbarMessage.emit(context.getString(R.string.settings_backup_failed))
@@ -89,9 +95,16 @@ class SettingsViewModel : ViewModel() {
     }
 
     fun onAutoOptimizeOnStartupChanged(enabled: Boolean) {
-        sharedPreferences.edit().putBoolean("auto_optimize_on_startup", enabled).apply()
-        _uiState.update { currentState ->
-            (currentState as SettingsUiState.Loaded).copy(autoOptimizeOnStartup = enabled)
+        settingsManager.setAutoOptimizeOnStartup(enabled)
+        _uiState.update {
+            (it as SettingsUiState.Loaded).copy(autoOptimizeOnStartup = enabled)
+        }
+    }
+
+    fun onSafeModeChanged(enabled: Boolean) {
+        settingsManager.setSafeMode(enabled)
+        _uiState.update {
+            (it as SettingsUiState.Loaded).copy(safeModeEnabled = enabled)
         }
     }
 
@@ -108,6 +121,7 @@ sealed interface SettingsUiState {
     data class Loaded(
         val profile: OptimizationProfile?,
         val hasBackup: Boolean,
-        val autoOptimizeOnStartup: Boolean
+        val autoOptimizeOnStartup: Boolean,
+        val safeModeEnabled: Boolean
     ) : SettingsUiState
 }

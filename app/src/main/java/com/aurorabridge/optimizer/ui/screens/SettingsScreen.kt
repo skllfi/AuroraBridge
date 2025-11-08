@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.PowerSettingsNew
 import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.Security
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
@@ -100,6 +101,13 @@ fun SettingsScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
+                    SafeModeCard(
+                        safeModeEnabled = state.safeModeEnabled,
+                        onCheckedChange = { settingsViewModel.onSafeModeChanged(it) }
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
                     DevToolsCard(navController = navController)
 
                     if (showDialog) {
@@ -171,6 +179,20 @@ private fun AutoOptimizeCard(autoOptimizeOnStartup: Boolean, onCheckedChange: (B
                 Text(text = "Apply the optimization profile automatically when your device starts.")
             }
             Switch(checked = autoOptimizeOnStartup, onCheckedChange = onCheckedChange)
+        }
+    }
+}
+
+@Composable
+private fun SafeModeCard(safeModeEnabled: Boolean, onCheckedChange: (Boolean) -> Unit) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Default.Security, contentDescription = "Safe Mode")
+            Column(modifier = Modifier.weight(1f).padding(start = 16.dp)) {
+                Text(text = "Safe Mode", fontWeight = FontWeight.Bold)
+                Text(text = "Log commands without executing them.")
+            }
+            Switch(checked = safeModeEnabled, onCheckedChange = onCheckedChange)
         }
     }
 }

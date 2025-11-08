@@ -1,5 +1,6 @@
 package com.aurorabridge.optimizer.utils
 
+import android.content.Context
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.BufferedReader
@@ -7,16 +8,21 @@ import java.io.InputStreamReader
 import java.io.PrintWriter
 import java.net.Socket
 
-class AdbCommander : IAdbCommander {
+class AdbCommander(private val context: Context) : IAdbCommander {
+
+    private val settingsManager = SettingsManager(context)
 
     override suspend fun runAdbCommandAsync(command: String): AdbCommandResult = withContext(Dispatchers.IO) {
+        if (settingsManager.isSafeModeEnabled()) {
+            CommandLogger.log(command, isSuccess = true, details = "[SAFE MODE] Command not executed.", isSafeMode = true)
+            return@withContext AdbCommandResult(isSuccess = true, output = "Safe Mode: Command logged but not executed.")
+        }
+
         val result = try {
-            // Connect to the ADB server
             val socket = Socket("localhost", 5037)
             val writer = PrintWriter(socket.getOutputStream(), true)
             val reader = BufferedReader(InputStreamReader(socket.getInputStream()))
 
-            // 1. Select the active device
             val selectDeviceCommand = "host:transport-any"
             val formattedSelectCommand = String.format("%04x%s", selectDeviceCommand.length, selectDeviceCommand)
             writer.print(formattedSelectCommand)
@@ -26,7 +32,6 @@ class AdbCommander : IAdbCommander {
             if (selectResponse == null || !selectResponse.startsWith("OKAY")) {
                 AdbCommandResult(isSuccess = false, error = "Failed to select device: ${selectResponse ?: "No response"}")
             } else {
-                // 2. Execute the shell command
                 val shellCommand = "shell:$command"
                 val formattedShellCommand = String.format("%04x%s", shellCommand.length, shellCommand)
                 writer.print(formattedShellCommand)
@@ -34,10 +39,9 @@ class AdbCommander : IAdbCommander {
 
                 val shellResponse = reader.readLine()
                 if (shellResponse == null || !shellResponse.startsWith("OKAY")) {
-                    val errorOutput = reader.readText() // Read the rest of the error message
+                    val errorOutput = reader.readText()
                     AdbCommandResult(isSuccess = false, error = "Command failed: ${shellResponse ?: ""} - $errorOutput")
                 } else {
-                    // 3. Read the full output of the command
                     val output = StringBuilder()
                     var line: String?
                     while (reader.readLine().also { line = it } != null) {
@@ -50,7 +54,6 @@ class AdbCommander : IAdbCommander {
             AdbCommandResult(isSuccess = false, error = e.message ?: "Exception occurred")
         }
 
-        // Log the command and its result
         CommandLogger.log(command, result.isSuccess, result.output ?: result.error ?: "No output")
 
         return@withContext result

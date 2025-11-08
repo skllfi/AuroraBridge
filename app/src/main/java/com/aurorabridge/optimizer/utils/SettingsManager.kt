@@ -13,4 +13,12 @@ class SettingsManager(context: Context) {
     fun setAutoOptimizeOnStartup(enabled: Boolean) {
         sharedPreferences.edit().putBoolean("auto_optimize_on_startup", enabled).apply()
     }
+
+    fun isSafeModeEnabled(): Boolean {
+        return sharedPreferences.getBoolean("safe_mode", false)
+    }
+
+    fun setSafeMode(enabled: Boolean) {
+        sharedPreferences.edit().putBoolean("safe_mode", enabled).apply()
+    }
 }
