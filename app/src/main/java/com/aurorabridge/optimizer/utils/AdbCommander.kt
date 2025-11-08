@@ -10,7 +10,7 @@ import java.net.Socket
 class AdbCommander : IAdbCommander {
 
     override suspend fun runAdbCommandAsync(command: String): AdbCommandResult = withContext(Dispatchers.IO) {
-        try {
+        val result = try {
             // Connect to the ADB server
             val socket = Socket("localhost", 5037)
             val writer = PrintWriter(socket.getOutputStream(), true)
@@ -24,31 +24,35 @@ class AdbCommander : IAdbCommander {
 
             val selectResponse = reader.readLine()
             if (selectResponse == null || !selectResponse.startsWith("OKAY")) {
-                return@withContext AdbCommandResult(isSuccess = false, error = "Failed to select device: ${selectResponse ?: "No response"}")
+                AdbCommandResult(isSuccess = false, error = "Failed to select device: ${selectResponse ?: "No response"}")
+            } else {
+                // 2. Execute the shell command
+                val shellCommand = "shell:$command"
+                val formattedShellCommand = String.format("%04x%s", shellCommand.length, shellCommand)
+                writer.print(formattedShellCommand)
+                writer.flush()
+
+                val shellResponse = reader.readLine()
+                if (shellResponse == null || !shellResponse.startsWith("OKAY")) {
+                    val errorOutput = reader.readText() // Read the rest of the error message
+                    AdbCommandResult(isSuccess = false, error = "Command failed: ${shellResponse ?: ""} - $errorOutput")
+                } else {
+                    // 3. Read the full output of the command
+                    val output = StringBuilder()
+                    var line: String?
+                    while (reader.readLine().also { line = it } != null) {
+                        output.append(line).append("\n")
+                    }
+                    AdbCommandResult(isSuccess = true, output = output.toString())
+                }
             }
-
-            // 2. Execute the shell command
-            val shellCommand = "shell:$command"
-            val formattedShellCommand = String.format("%04x%s", shellCommand.length, shellCommand)
-            writer.print(formattedShellCommand)
-            writer.flush()
-
-            val shellResponse = reader.readLine()
-            if (shellResponse == null || !shellResponse.startsWith("OKAY")) {
-                val errorOutput = reader.readText() // Read the rest of the error message
-                return@withContext AdbCommandResult(isSuccess = false, error = "Command failed: ${shellResponse ?: ""} - $errorOutput")
-            }
-
-            // 3. Read the full output of the command
-            val output = StringBuilder()
-            var line: String?
-            while (reader.readLine().also { line = it } != null) {
-                output.append(line).append("\n")
-            }
-
-            AdbCommandResult(isSuccess = true, output = output.toString())
         } catch (e: Exception) {
             AdbCommandResult(isSuccess = false, error = e.message ?: "Exception occurred")
         }
+
+        // Log the command and its result
+        CommandLogger.log(command, result.isSuccess, result.output ?: result.error ?: "No output")
+
+        return@withContext result
     }
 }

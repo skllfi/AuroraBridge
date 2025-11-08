@@ -1,5 +1,6 @@
 package com.aurorabridge.optimizer.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,13 +10,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.PowerSettingsNew
 import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material.icons.filled.Save
-import androidx.compose.material.icons.filled.ToggleOff
-import androidx.compose.material.icons.filled.ToggleOn
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
@@ -37,17 +36,20 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.aurorabridge.optimizer.R
 import com.aurorabridge.optimizer.optimizer.OptimizationProfile
 import com.aurorabridge.optimizer.ui.components.ConfirmationDialog
+import com.aurorabridge.optimizer.ui.vm.LanguageViewModel
 import com.aurorabridge.optimizer.ui.vm.SettingsUiState
 import com.aurorabridge.optimizer.ui.vm.SettingsViewModel
 
 @Composable
 fun SettingsScreen(
     navController: NavController,
+    languageViewModelFactory: ViewModelProvider.Factory,
     settingsViewModel: SettingsViewModel = viewModel()
 ) {
     val uiState by settingsViewModel.uiState.collectAsState()
@@ -95,6 +97,10 @@ fun SettingsScreen(
                         autoOptimizeOnStartup = state.autoOptimizeOnStartup,
                         onCheckedChange = { settingsViewModel.onAutoOptimizeOnStartupChanged(it) }
                     )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    DevToolsCard(navController = navController)
 
                     if (showDialog) {
                         state.profile?.let {
@@ -165,6 +171,25 @@ private fun AutoOptimizeCard(autoOptimizeOnStartup: Boolean, onCheckedChange: (B
                 Text(text = "Apply the optimization profile automatically when your device starts.")
             }
             Switch(checked = autoOptimizeOnStartup, onCheckedChange = onCheckedChange)
+        }
+    }
+}
+
+@Composable
+private fun DevToolsCard(navController: NavController) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { navController.navigate("command_logger") }
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(Icons.Default.Code, contentDescription = "Developer Tools")
+            Column(modifier = Modifier.weight(1f).padding(start = 16.dp)) {
+                Text(text = "Developer Tools", fontWeight = FontWeight.Bold)
+                Text(text = "View command logs and other debug information.")
+            }
         }
     }
 }

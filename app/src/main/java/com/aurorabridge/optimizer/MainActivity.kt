@@ -30,6 +30,7 @@ import com.aurorabridge.optimizer.ui.instructions.InstructionsScreen
 import com.aurorabridge.optimizer.ui.screens.AdbActivationGuide
 import com.aurorabridge.optimizer.ui.screens.AdbCompanionScreen
 import com.aurorabridge.optimizer.ui.screens.AppControlScreen
+import com.aurorabridge.optimizer.ui.screens.CommandLoggerScreen
 import com.aurorabridge.optimizer.ui.screens.DiagnosticsScreen
 import com.aurorabridge.optimizer.ui.screens.HomeScreen
 import com.aurorabridge.optimizer.ui.screens.SettingsScreen
@@ -107,10 +108,11 @@ class MainActivity : ComponentActivity() {
                     ) {
                         // Routes from original MainActivity
                         composable("user_warning") { UserWarningScreen(navController) }
-                        composable("diagnostics") { DiagnosticsScreen(navController) } // Reverted to original
+                        composable("diagnostics") { DiagnosticsScreen(navController) }
                         composable("adb") { AdbCompanionScreen(navController) }
                         composable("adb_guide") { AdbActivationGuide(navController) }
                         composable("instructions") { InstructionsScreen() }
+                        composable("command_logger") { CommandLoggerScreen() } // Added route
                         composable(
                             "app_control_screen/{packageName}",
                             arguments = listOf(navArgument("packageName") { type = NavType.StringType })
