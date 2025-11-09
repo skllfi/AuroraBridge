@@ -1,4 +1,4 @@
-package com.aurorabridge.optimizer.viewmodel
+package com.aurorabridge.optimizer.ui.vm
 
 import androidx.lifecycle.ViewModel
 import com.aurorabridge.optimizer.adb.AdbConnectionManager

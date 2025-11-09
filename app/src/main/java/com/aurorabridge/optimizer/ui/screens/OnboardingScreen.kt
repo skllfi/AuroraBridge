@@ -12,7 +12,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -20,12 +19,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.aurorabridge.optimizer.R
 import com.aurorabridge.optimizer.ui.vm.OnboardingViewModel
-import com.aurorabridge.optimizer.ui.vm.OnboardingViewModelFactory
 
 @Composable
 fun OnboardingScreen(navController: NavController) {
-    val context = LocalContext.current
-    val viewModel: OnboardingViewModel = viewModel(factory = OnboardingViewModelFactory(context))
+    val viewModel: OnboardingViewModel = viewModel()
 
     Column(
         modifier = Modifier

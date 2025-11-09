@@ -25,11 +25,17 @@ object BrandAutoOptimizer {
         )
     }
 
-    suspend fun applyOptimization(context: Context, profile: OptimizationProfile) {
+    suspend fun applyOptimization(context: Context, profile: OptimizationProfile): Boolean {
         val adbCommander = AdbCommander(context)
+        var allSucceeded = true
         for (command in profile.commands) {
-            adbCommander.runAdbCommandAsync(command)
+            val result = adbCommander.runAdbCommandAsync(command)
+            if (!result.isSuccess) {
+                allSucceeded = false
+                break
+            }
         }
+        return allSucceeded
     }
 
     private fun getDeviceBrand(): DeviceBrand {

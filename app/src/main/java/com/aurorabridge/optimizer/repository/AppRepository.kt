@@ -1,19 +1,14 @@
-package com.aurorabridge.optimizer.ui.apps
+
+package com.aurorabridge.optimizer.repository
 
 import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import com.aurorabridge.optimizer.adb.AdbHelper
+import com.aurorabridge.optimizer.ui.apps.AppFilter
+import com.aurorabridge.optimizer.ui.apps.AppInfo
 
-data class AppInfo(val name: String, val packageName: String, val icon: Int, val isSystemApp: Boolean)
-
-enum class AppFilter {
-    ALL,
-    USER_ONLY,
-    SYSTEM_ONLY
-}
-
-class AppManager(private val context: Context) {
+class AppRepository(private val context: Context) {
 
     fun getInstalledApps(filter: AppFilter = AppFilter.ALL): List<AppInfo> {
         val pm = context.packageManager

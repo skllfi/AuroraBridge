@@ -1,15 +1,16 @@
 package com.aurorabridge.optimizer.ui.vm
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.aurorabridge.optimizer.repository.AppRepository
 import com.aurorabridge.optimizer.ui.apps.AppFilter
 import com.aurorabridge.optimizer.ui.apps.AppInfo
-import com.aurorabridge.optimizer.ui.apps.AppManager
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 data class AppManagerUiState(
     val apps: List<AppInfo> = emptyList(),
@@ -19,17 +20,15 @@ data class AppManagerUiState(
     val currentFilter: AppFilter = AppFilter.ALL
 )
 
-class AppManagerViewModel : ViewModel() {
+@HiltViewModel
+class AppManagerViewModel @Inject constructor(private val appRepository: AppRepository) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AppManagerUiState())
     val uiState: StateFlow<AppManagerUiState> = _uiState.asStateFlow()
 
-    private lateinit var appManager: AppManager
-
-    fun loadApps(context: Context) {
-        appManager = AppManager(context)
+    fun loadApps() {
         viewModelScope.launch {
-            val apps = appManager.getInstalledApps(_uiState.value.currentFilter)
+            val apps = appRepository.getInstalledApps(_uiState.value.currentFilter)
             _uiState.value = AppManagerUiState(apps = apps, isLoading = false)
         }
     }
@@ -37,7 +36,7 @@ class AppManagerViewModel : ViewModel() {
     fun setFilter(filter: AppFilter) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, currentFilter = filter, apps = emptyList())
-            val apps = appManager.getInstalledApps(filter)
+            val apps = appRepository.getInstalledApps(filter)
             _uiState.value = _uiState.value.copy(apps = apps, isLoading = false)
         }
     }
@@ -54,22 +53,22 @@ class AppManagerViewModel : ViewModel() {
 
     fun uninstallSelectedApps() {
         viewModelScope.launch {
-            val result = appManager.uninstallApps(_uiState.value.selectedApps.toList())
+            val result = appRepository.uninstallApps(_uiState.value.selectedApps.toList())
             _uiState.value = _uiState.value.copy(output = result, selectedApps = emptySet())
-            loadApps(appManager.context) // Reload apps after uninstall
+            loadApps() // Reload apps after uninstall
         }
     }
 
     fun disableSelectedApps() {
         viewModelScope.launch {
-            val result = appManager.disableApps(_uiState.value.selectedApps.toList())
+            val result = appRepository.disableApps(_uiState.value.selectedApps.toList())
             _uiState.value = _uiState.value.copy(output = result, selectedApps = emptySet())
         }
     }
 
     fun enableSelectedApps() {
         viewModelScope.launch {
-            val result = appManager.enableApps(_uiState.value.selectedApps.toList())
+            val result = appRepository.enableApps(_uiState.value.selectedApps.toList())
             _uiState.value = _uiState.value.copy(output = result, selectedApps = emptySet())
         }
     }

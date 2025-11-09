@@ -27,20 +27,19 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.aurorabridge.optimizer.ui.vm.AppManagerViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppManagerScreen(viewModel: AppManagerViewModel = viewModel()) {
+fun AppManagerScreen(navController: NavController, viewModel: AppManagerViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsState()
-    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
-        viewModel.loadApps(context)
+        viewModel.loadApps()
     }
 
     Scaffold(

@@ -6,7 +6,7 @@
   # Пакеты, необходимые для Android-разработки.
   packages = [
     pkgs.android-tools  # Включает ADB (Android Debug Bridge).
-    pkgs.openjdk17      # Java Development Kit, необходимый для Gradle.
+    pkgs.openjdk17      # Java Development Kit, необходимый длapkgs.android-sdk    # Android SDK для сборки и разработки.
   ];
 
   # Расширения VS Code для улучшения опыта разработки на Kotlin.

@@ -20,12 +20,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.aurorabridge.optimizer.R
 import com.aurorabridge.optimizer.ui.vm.PermissionsViewModel
-import com.aurorabridge.optimizer.ui.vm.PermissionsViewModelFactory
 
 @Composable
-fun PermissionsScreen(navController: NavController) {
-    val context = LocalContext.current
-    val viewModel: PermissionsViewModel = viewModel(factory = PermissionsViewModelFactory(context))
+fun PermissionsScreen(navController: NavController, onGrantPermissions: () -> Unit) {
+    val viewModel: PermissionsViewModel = viewModel()
 
     if (viewModel.arePermissionsGranted()) {
         navController.navigate("user_warning")
@@ -48,7 +46,7 @@ fun PermissionsScreen(navController: NavController) {
             style = MaterialTheme.typography.bodyLarge
         )
         Spacer(modifier = Modifier.height(32.dp))
-        Button(onClick = { viewModel.requestPermissions() }) {
+        Button(onClick = { onGrantPermissions() }) {
             Text(text = stringResource(id = R.string.onboarding_button_grant_permissions))
         }
     }

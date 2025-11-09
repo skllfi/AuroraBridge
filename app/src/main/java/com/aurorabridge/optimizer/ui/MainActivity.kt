@@ -1,9 +1,11 @@
 package com.aurorabridge.optimizer.ui
 
-import android.content.pm.PackageManager
+import android.Manifest
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -47,12 +49,12 @@ import com.aurorabridge.optimizer.ui.screens.UserWarningScreen
 import com.aurorabridge.optimizer.ui.theme.AuroraTheme
 import com.aurorabridge.optimizer.ui.vm.BackupHistoryViewModelFactory
 import com.aurorabridge.optimizer.ui.vm.LanguageViewModel
-import com.aurorabridge.optimizer.ui.vm.PermissionsViewModel
 import com.aurorabridge.optimizer.utils.AdbCommander
-import com.aurorabridge.optimizer.utils.BrandAutoOptimizer
+import com.aurorabridge.optimizer.optimizer.BrandAutoOptimizer
 import com.aurorabridge.optimizer.utils.LocaleManager
 import com.aurorabridge.optimizer.utils.OptimizationNotificationHelper
 import com.aurorabridge.optimizer.utils.SettingsManager
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
 sealed class Screen(val route: String, val resourceId: Int, val icon: Int) {
@@ -61,6 +63,7 @@ sealed class Screen(val route: String, val resourceId: Int, val icon: Int) {
     object Settings : Screen("settings", R.string.settings_title, R.drawable.ic_settings)
 }
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     private val localeManager by lazy { LocaleManager() }
@@ -91,6 +94,15 @@ class MainActivity : ComponentActivity() {
         setContent {
             AuroraTheme {
                 navController = rememberNavController()
+
+                val requestPermissionLauncher = rememberLauncherForActivityResult(
+                    contract = ActivityResultContracts.RequestPermission()
+                ) { isGranted: Boolean ->
+                    if (isGranted) {
+                        navController.navigate("user_warning")
+                    }
+                }
+
                 Scaffold(
                     bottomBar = {
                         NavigationBar {
@@ -121,7 +133,11 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier.padding(innerPadding)
                     ) {
                         composable("onboarding") { OnboardingScreen(navController) }
-                        composable("permissions") { PermissionsScreen(navController) }
+                        composable("permissions") { 
+                            PermissionsScreen(navController) { 
+                                requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS) 
+                            }
+                        }
                         // Routes from original MainActivity
                         composable("user_warning") { UserWarningScreen(navController) }
                         composable("diagnostics") { DiagnosticsScreen(navController) }
@@ -157,36 +173,12 @@ class MainActivity : ComponentActivity() {
         runAutoOptimization()
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == PermissionsViewModel.PERMISSIONS_REQUEST_CODE) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                navController.navigate("user_warning")
-            }
-        }
-    }
-
     private fun runAutoOptimization() {
         val settingsManager = SettingsManager(this)
         if (settingsManager.isAutoOptimizeOnStartupEnabled()) {
-            val brandOptimizer = BrandAutoOptimizer()
-            val deviceBrand = brandOptimizer.getDeviceBrand()
-            if (deviceBrand != DeviceBrand.UNKNOWN) {
-                val commands = brandOptimizer.getOptimizationCommands(deviceBrand, "", this)
-                val adbCommander = AdbCommander()
+            BrandAutoOptimizer.getProfileForCurrentDevice(this)?.let { profile ->
                 lifecycleScope.launch {
-                    var allSucceeded = true
-                    for (command in commands) {
-                        val result = adbCommander.runAdbCommandAsync(command)
-                        if (!result.isSuccess) {
-                            allSucceeded = false
-                            break
-                        }
-                    }
+                    val allSucceeded = BrandAutoOptimizer.applyOptimization(this@MainActivity, profile)
                     notificationHelper.showAutoOptimizationNotification(allSucceeded)
                 }
             }
