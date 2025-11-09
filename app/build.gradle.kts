@@ -3,6 +3,7 @@ plugins {
     kotlin("android")
     id("org.jetbrains.kotlin.plugin.serialization")
     id("com.google.dagger.hilt.android")
+    id("com.google.firebase.firebase-perf")
     kotlin("kapt")
 }
 
