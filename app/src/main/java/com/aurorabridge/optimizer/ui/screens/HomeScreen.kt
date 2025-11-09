@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Apps
@@ -14,12 +13,13 @@ import androidx.compose.material.icons.filled.DeveloperMode
 import androidx.compose.material.icons.filled.Help
 import androidx.compose.material.icons.filled.Science
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.Button
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,11 +27,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.aurorabridge.optimizer.R
+import com.aurorabridge.optimizer.ui.AppScreen
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(navController: NavController) {
     Scaffold(
-        topBar = { TopAppBar(title = { Text(stringResource(R.string.app_name)) }) }
+        topBar = { CenterAlignedTopAppBar(title = { Text(stringResource(R.string.app_name)) }) }
     ) { padding ->
         Column(
             modifier = Modifier
@@ -48,8 +50,8 @@ fun HomeScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            Button(
-                onClick = { navController.navigate("instructions") },
+            FilledTonalButton(
+                onClick = { navController.navigate(AppScreen.Instructions.route) },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Icon(Icons.Default.Help, contentDescription = "Instructions")
@@ -59,8 +61,8 @@ fun HomeScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Button(
-                onClick = { navController.navigate("diagnostics") },
+            FilledTonalButton(
+                onClick = { navController.navigate(AppScreen.Diagnostics.route) },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Icon(Icons.Default.Science, contentDescription = "Diagnostics")
@@ -70,8 +72,8 @@ fun HomeScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Button(
-                onClick = { navController.navigate("adb") },
+            FilledTonalButton(
+                onClick = { navController.navigate(AppScreen.Adb.route) },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Icon(Icons.Default.DeveloperMode, contentDescription = "ADB Companion")
@@ -81,8 +83,8 @@ fun HomeScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Button(
-                onClick = { navController.navigate("app_list_screen/default") },
+            FilledTonalButton(
+                onClick = { navController.navigate("${AppScreen.AppManager.route}/default") },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Icon(Icons.Default.Apps, contentDescription = "App List")
@@ -92,8 +94,8 @@ fun HomeScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Button(
-                onClick = { navController.navigate("settings") },
+            FilledTonalButton(
+                onClick = { navController.navigate(AppScreen.Settings.route) },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Icon(Icons.Default.Settings, contentDescription = "Settings")

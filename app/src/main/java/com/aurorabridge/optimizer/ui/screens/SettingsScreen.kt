@@ -1,4 +1,3 @@
-
 package com.aurorabridge.optimizer.ui.screens
 
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -41,13 +40,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.aurorabridge.optimizer.R
 import com.aurorabridge.optimizer.optimizer.OptimizationProfile
 import com.aurorabridge.optimizer.ui.components.ConfirmationDialog
-import com.aurorabridge.optimizer.ui.vm.LanguageViewModel
 import com.aurorabridge.optimizer.ui.vm.SettingsUiState
 import com.aurorabridge.optimizer.ui.vm.SettingsViewModel
 import java.io.File
@@ -55,8 +52,7 @@ import java.io.File
 @Composable
 fun SettingsScreen(
     navController: NavController,
-    languageViewModelFactory: ViewModelProvider.Factory,
-    settingsViewModel: SettingsViewModel = viewModel()
+    settingsViewModel: SettingsViewModel = hiltViewModel()
 ) {
     val uiState by settingsViewModel.uiState.collectAsState()
     val showDialog by settingsViewModel.showConfirmationDialog.collectAsState()

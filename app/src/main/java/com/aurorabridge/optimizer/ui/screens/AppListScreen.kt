@@ -22,22 +22,23 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.BatteryAlert
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -55,6 +56,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.aurorabridge.optimizer.R
+import com.aurorabridge.optimizer.ui.AppScreen
+import com.aurorabridge.optimizer.ui.components.ConfirmationDialog
 import com.aurorabridge.optimizer.ui.vm.AppInfo
 import com.aurorabridge.optimizer.ui.vm.AppListUiState
 import com.aurorabridge.optimizer.ui.vm.AppListViewModel
@@ -64,6 +67,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun AppListScreen(
     navController: NavController,
+    profile: String?,
     appListViewModel: AppListViewModel = viewModel()
 ) {
     val context = LocalContext.current
@@ -83,14 +87,13 @@ fun AppListScreen(
         }
     }
 
-    // Load apps when the composable is first launched
     LaunchedEffect(Unit) {
-        appListViewModel.loadApps(context.packageManager)
+        appListViewModel.loadApps(context.packageManager, context, profile)
     }
 
     Scaffold(
         topBar = {
-            TopAppBar(
+            CenterAlignedTopAppBar(
                 title = { Text(stringResource(R.string.app_list_title)) },
                 navigationIcon = {
                     if (isSelectionModeActive) {
@@ -110,6 +113,7 @@ fun AppListScreen(
                         CircularProgressIndicator()
                     }
                 }
+
                 is AppListUiState.Success -> {
                     if (state.apps.isEmpty()) {
                         Text(stringResource(R.string.app_list_no_apps))
@@ -134,6 +138,18 @@ fun AppListScreen(
                         }
                     }
                 }
+
+                is AppListUiState.ConfirmAction -> {
+                    ConfirmationDialog(
+                        commands = state.commands,
+                        onConfirm = {
+                            state.action()
+                            appListViewModel.onConfirmationDialogDismissed()
+                        },
+                        onDismiss = { appListViewModel.onConfirmationDialogDismissed() }
+                    )
+                }
+
                 is AppListUiState.Error -> {
                     Text(state.message, color = MaterialTheme.colorScheme.error)
                 }
@@ -152,12 +168,12 @@ private fun ActionButtons(
     val availableProfiles = appListViewModel.getAvailableProfiles()
 
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-        Button(onClick = { appListViewModel.disableBatteryOptimizationForSelectedApps() }) {
+        FilledTonalButton(onClick = { appListViewModel.disableBatteryOptimizationForSelectedApps() }) {
             Icon(Icons.Default.BatteryAlert, contentDescription = "Disable Battery Optimization")
             Spacer(modifier = Modifier.width(8.dp))
             Text(stringResource(R.string.app_list_disable_optimization_button))
         }
-        Button(onClick = { appListViewModel.uninstallSelectedApps() }) {
+        FilledTonalButton(onClick = { appListViewModel.uninstallSelectedApps() }) {
             Icon(Icons.Default.Delete, contentDescription = "Uninstall")
             Spacer(modifier = Modifier.width(8.dp))
             Text(stringResource(R.string.app_list_uninstall_button))
@@ -165,12 +181,13 @@ private fun ActionButtons(
         Box {
             val recommendedProfile = state.recommendedProfile
             if (recommendedProfile != null) {
-                Button(onClick = { appListViewModel.applyFixProfileForSelectedApps(context, recommendedProfile) }) {
+                FilledTonalButton(onClick = { appListViewModel.applyFixProfileForSelectedApps(context, recommendedProfile) }) {
                     Text("Apply $recommendedProfile")
                 }
             } else {
-                Button(onClick = { showMenu = true }) {
+                FilledTonalButton(onClick = { showMenu = true }) {
                     Text(stringResource(R.string.app_list_apply_fix_profile_button))
+                    Icon(Icons.Default.MoreVert, contentDescription = "More options")
                 }
                 DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
                     availableProfiles.forEach { profile ->
@@ -197,7 +214,7 @@ private fun AppListView(
 ) {
     LazyColumn(modifier = modifier) {
         items(apps) { app ->
-            Card(
+            ElevatedCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 4.dp)
@@ -211,7 +228,6 @@ private fun AppListView(
                             }
                         )
                     },
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
                 Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                     if (isSelectionModeActive) {
@@ -220,12 +236,12 @@ private fun AppListView(
                     }
                     Text(text = app.name, modifier = Modifier.weight(1f))
                     Spacer(modifier = Modifier.width(8.dp))
-                    Button(onClick = { openAppSettings(context, app.packageName) }) {
-                        Text(stringResource(R.string.app_list_settings_button))
+                    IconButton(onClick = { openAppSettings(context, app.packageName) }) {
+                        Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.app_list_settings_button))
                     }
                     Spacer(modifier = Modifier.width(8.dp))
-                    IconButton(onClick = { navController.navigate("app_control_screen/${app.packageName}") }) {
-                        Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.app_list_manage_button))
+                    IconButton(onClick = { navController.navigate(AppScreen.AppControl.createRoute(app.packageName)) }) {
+                        Icon(Icons.Default.MoreVert, contentDescription = stringResource(R.string.app_list_manage_button))
                     }
                 }
             }

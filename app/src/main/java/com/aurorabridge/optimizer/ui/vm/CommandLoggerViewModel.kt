@@ -1,10 +1,12 @@
 package com.aurorabridge.optimizer.ui.vm
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.aurorabridge.optimizer.utils.CommandLogger
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
 class CommandLoggerViewModel : ViewModel() {
 
@@ -16,11 +18,15 @@ class CommandLoggerViewModel : ViewModel() {
     }
 
     fun loadLogs() {
-        _logEntries.value = CommandLogger.getHistory()
+        viewModelScope.launch {
+            _logEntries.value = CommandLogger.getHistory()
+        }
     }
 
     fun clearLogs() {
-        CommandLogger.clearHistory()
-        loadLogs() // Refresh the list after clearing
+        viewModelScope.launch {
+            CommandLogger.clearHistory()
+            loadLogs() // Refresh the list after clearing
+        }
     }
 }

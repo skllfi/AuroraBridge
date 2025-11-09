@@ -8,12 +8,16 @@ import java.io.InputStreamReader
 import java.io.PrintWriter
 import java.net.Socket
 
-class AdbCommander(private val context: Context) : IAdbCommander {
+object AdbCommander : IAdbCommander {
 
-    private val settingsManager = SettingsManager(context)
+    private lateinit var settingsManager: SettingsManager
 
-    override suspend fun runAdbCommandAsync(command: String): AdbCommandResult = withContext(Dispatchers.IO) {
-        if (settingsManager.isSafeModeEnabled()) {
+    fun initialize(context: Context) {
+        settingsManager = SettingsManager(context)
+    }
+
+    override suspend fun runAdbCommandAsync(command: String, force: Boolean): AdbCommandResult = withContext(Dispatchers.IO) {
+        if (settingsManager.isSafeModeEnabled() && !force) {
             CommandLogger.log(command, isSuccess = true, details = "[SAFE MODE] Command not executed.", isSafeMode = true)
             return@withContext AdbCommandResult(isSuccess = true, output = "Safe Mode: Command logged but not executed.")
         }
@@ -45,7 +49,8 @@ class AdbCommander(private val context: Context) : IAdbCommander {
                     val output = StringBuilder()
                     var line: String?
                     while (reader.readLine().also { line = it } != null) {
-                        output.append(line).append("\n")
+                        output.append(line).append("
+")
                     }
                     AdbCommandResult(isSuccess = true, output = output.toString())
                 }
@@ -57,5 +62,18 @@ class AdbCommander(private val context: Context) : IAdbCommander {
         CommandLogger.log(command, result.isSuccess, result.output ?: result.error ?: "No output")
 
         return@withContext result
+    }
+
+    override suspend fun runAdbCommandsAsync(commands: List<String>, force: Boolean): List<AdbCommandResult> {
+        val results = mutableListOf<AdbCommandResult>()
+        for (command in commands) {
+            results.add(runAdbCommandAsync(command, force))
+        }
+        return results
+    }
+
+    suspend fun uninstallApp(packageName: String, force: Boolean = false): AdbCommandResult {
+        val command = "pm uninstall -k --user 0 $packageName"
+        return runAdbCommandAsync(command, force)
     }
 }

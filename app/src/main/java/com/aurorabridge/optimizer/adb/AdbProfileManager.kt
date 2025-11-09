@@ -1,9 +1,11 @@
 package com.aurorabridge.optimizer.adb
 
 import android.content.Context
+import com.aurorabridge.optimizer.utils.AdbCommander
 import com.aurorabridge.optimizer.utils.BackupAndRestoreManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.File
 
 object AdbProfileManager {
 
@@ -26,7 +28,12 @@ object AdbProfileManager {
         )
     )
 
-    suspend fun applyProfile(context: Context, packageName: String, profileName: String) {
+    suspend fun applyProfile(
+        context: Context,
+        packageName: String,
+        profileName: String,
+        force: Boolean = false
+    ) {
         withContext(Dispatchers.IO) {
             val commands = profiles[profileName]
             if (commands != null) {
@@ -44,19 +51,31 @@ object AdbProfileManager {
 
                 // Create and save a snapshot before applying changes
                 val snapshot = BackupAndRestoreManager.createSettingsSnapshot(settingsToBackup)
-                BackupAndRestoreManager.saveBackupToFile(context, snapshot)
+                BackupAndRestoreManager.saveBackupToFile(context, profileName, packageName, snapshot)
 
                 // Now, apply the new settings
-                commands.forEach { command ->
-                    // Replace the placeholder with the package name if needed
-                    val formattedCommand = command.format(packageName)
-                    AdbCommander.runShellCommand(formattedCommand)
-                }
+                AdbCommander.runAdbCommandsAsync(commands, force)
             }
         }
     }
 
+    fun getProfileForApp(context: Context, packageName: String): String? {
+        val backupDir = context.filesDir
+        val backupFiles = backupDir.listFiles { _, name -> name.startsWith("optimizer_backup_${packageName}_") && name.endsWith(".json") }
+
+        backupFiles?.firstOrNull()?.let { file ->
+            val backupData = BackupAndRestoreManager.readBackupFromFile(file)
+            return backupData?.profileName
+        }
+
+        return null
+    }
+
     fun getAvailableProfiles(): List<String> {
         return profiles.keys.toList()
+    }
+
+    fun getCommandsForProfile(profileName: String): List<String> {
+        return profiles[profileName] ?: emptyList()
     }
 }

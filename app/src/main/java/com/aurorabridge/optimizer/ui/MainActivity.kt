@@ -14,61 +14,39 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
-import androidx.navigation.NavType
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import com.aurorabridge.optimizer.R
-import com.aurorabridge.optimizer.model.DeviceBrand
-import com.aurorabridge.optimizer.ui.apps.AppManagerScreen
-import com.aurorabridge.optimizer.ui.apps.BackupHistoryRepository
-import com.aurorabridge.optimizer.ui.instructions.InstructionsScreen
-import com.aurorabridge.optimizer.ui.screens.AdbActivationGuide
-import com.aurorabridge.optimizer.ui.screens.AdbCompanionScreen
-import com.aurorabridge.optimizer.ui.screens.AppControlScreen
-import com.aurorabridge.optimizer.ui.screens.BackupHistoryScreen
-import com.aurorabridge.optimizer.ui.screens.CommandLoggerScreen
-import com.aurorabridge.optimizer.ui.screens.DiagnosticsScreen
-import com.aurorabridge.optimizer.ui.screens.HomeScreen
-import com.aurorabridge.optimizer.ui.screens.OnboardingScreen
-import com.aurorabridge.optimizer.ui.screens.PermissionsScreen
-import com.aurorabridge.optimizer.ui.screens.SettingsScreen
-import com.aurorabridge.optimizer.ui.screens.UserWarningScreen
-import com.aurorabridge.optimizer.ui.theme.AuroraTheme
-import com.aurorabridge.optimizer.ui.vm.BackupHistoryViewModelFactory
-import com.aurorabridge.optimizer.ui.vm.LanguageViewModel
-import com.aurorabridge.optimizer.utils.AdbCommander
 import com.aurorabridge.optimizer.optimizer.BrandAutoOptimizer
+import com.aurorabridge.optimizer.repository.SettingsRepository
+import com.aurorabridge.optimizer.ui.theme.AuroraTheme
 import com.aurorabridge.optimizer.utils.LocaleManager
 import com.aurorabridge.optimizer.utils.OptimizationNotificationHelper
-import com.aurorabridge.optimizer.utils.SettingsManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-
-sealed class Screen(val route: String, val resourceId: Int, val icon: Int) {
-    object Home : Screen("home", R.string.home_title, R.drawable.ic_home)
-    object AppManager : Screen("app_manager", R.string.app_manager_title, R.drawable.ic_apps)
-    object Settings : Screen("settings", R.string.settings_title, R.drawable.ic_settings)
-}
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
+    @Inject
+    lateinit var settingsRepository: SettingsRepository
+    @Inject
+    lateinit var brandAutoOptimizer: BrandAutoOptimizer
+
     private val localeManager by lazy { LocaleManager() }
     private val notificationHelper by lazy { OptimizationNotificationHelper(this) }
-    private val bottomNavItems = listOf(Screen.Home, Screen.AppManager, Screen.Settings)
+    private val bottomNavItems = listOf(
+        Triple(AppScreen.Home, R.drawable.ic_home, R.string.home_title),
+        Triple(AppScreen.AppManager, R.drawable.ic_apps, R.string.app_manager_title),
+        Triple(AppScreen.Settings, R.drawable.ic_settings, R.string.settings_title)
+    )
     private lateinit var navController: NavHostController
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -79,18 +57,6 @@ class MainActivity : ComponentActivity() {
         val language = localeManager.getLanguage(this)
         localeManager.setLocale(this, language)
 
-        val settingsManager = SettingsManager(this)
-
-        val languageViewModelFactory = object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                if (modelClass.isAssignableFrom(LanguageViewModel::class.java)) {
-                    @Suppress("UNCHECKED_CAST")
-                    return LanguageViewModel(localeManager) as T
-                }
-                throw IllegalArgumentException("Unknown ViewModel class")
-            }
-        }
-
         setContent {
             AuroraTheme {
                 navController = rememberNavController()
@@ -99,7 +65,7 @@ class MainActivity : ComponentActivity() {
                     contract = ActivityResultContracts.RequestPermission()
                 ) { isGranted: Boolean ->
                     if (isGranted) {
-                        navController.navigate("user_warning")
+                        navController.navigate(AppScreen.UserWarning.route)
                     }
                 }
 
@@ -108,10 +74,10 @@ class MainActivity : ComponentActivity() {
                         NavigationBar {
                             val navBackStackEntry by navController.currentBackStackEntryAsState()
                             val currentDestination = navBackStackEntry?.destination
-                            bottomNavItems.forEach { screen ->
+                            bottomNavItems.forEach { (screen, iconRes, titleRes) ->
                                 NavigationBarItem(
-                                    icon = { Icon(painterResource(id = screen.icon), contentDescription = null) },
-                                    label = { Text(stringResource(screen.resourceId)) },
+                                    icon = { Icon(painterResource(id = iconRes), contentDescription = null) },
+                                    label = { Text(stringResource(titleRes)) },
                                     selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
                                     onClick = {
                                         navController.navigate(screen.route) {
@@ -127,45 +93,12 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 ) { innerPadding ->
-                    NavHost(
+                    AppNavigation(
                         navController = navController,
-                        startDestination = if (settingsManager.isOnboardingComplete()) "user_warning" else "onboarding",
-                        modifier = Modifier.padding(innerPadding)
-                    ) {
-                        composable("onboarding") { OnboardingScreen(navController) }
-                        composable("permissions") { 
-                            PermissionsScreen(navController) { 
-                                requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS) 
-                            }
-                        }
-                        // Routes from original MainActivity
-                        composable("user_warning") { UserWarningScreen(navController) }
-                        composable("diagnostics") { DiagnosticsScreen(navController) }
-                        composable("adb") { AdbCompanionScreen(navController) }
-                        composable("adb_guide") { AdbActivationGuide(navController) }
-                        composable("instructions") { InstructionsScreen() }
-                        composable("command_logger") { CommandLoggerScreen() } // Added route
-                        composable(
-                            "app_control_screen/{packageName}",
-                            arguments = listOf(navArgument("packageName") { type = NavType.StringType })
-                        ) { backStackEntry ->
-                            AppControlScreen(
-                                navController = navController,
-                                packageName = backStackEntry.arguments?.getString("packageName") ?: ""
-                            )
-                        }
-
-                        // Routes from ui/MainActivity
-                        composable(Screen.Home.route) { HomeScreen(navController) }
-                        composable(Screen.Settings.route) { SettingsScreen(navController, languageViewModelFactory) }
-                        composable(Screen.AppManager.route) { AppManagerScreen(navController) }
-                        composable("backup_history") {
-                            val context = LocalContext.current
-                            val repository = BackupHistoryRepository(context)
-                            val factory = BackupHistoryViewModelFactory(repository)
-                            BackupHistoryScreen(viewModel = viewModel(factory = factory))
-                        }
-                    }
+                        startDestination = if (settingsRepository.isOnboardingComplete()) AppScreen.UserWarning.route else AppScreen.Onboarding.route,
+                        modifier = Modifier.padding(innerPadding),
+                        requestPermission = { requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS) }
+                    )
                 }
             }
         }
@@ -174,11 +107,10 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun runAutoOptimization() {
-        val settingsManager = SettingsManager(this)
-        if (settingsManager.isAutoOptimizeOnStartupEnabled()) {
-            BrandAutoOptimizer.getProfileForCurrentDevice(this)?.let { profile ->
+        if (settingsRepository.isAutoOptimizeOnStartupEnabled()) {
+            brandAutoOptimizer.getProfileForCurrentDevice(this)?.let { profile ->
                 lifecycleScope.launch {
-                    val allSucceeded = BrandAutoOptimizer.applyOptimization(this@MainActivity, profile)
+                    val allSucceeded = brandAutoOptimizer.applyOptimization(this@MainActivity, profile)
                     notificationHelper.showAutoOptimizationNotification(allSucceeded)
                 }
             }

@@ -14,6 +14,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class BackupData(
     val timestamp: Long,
+    val profileName: String,
+    val packageName: String,
     val settings: Map<String, String>
 )
 
@@ -42,11 +44,11 @@ object BackupAndRestoreManager {
     /**
      * Saves the backup data to a private file in JSON format with a timestamp in the filename.
      */
-    fun saveBackupToFile(context: Context, settingsData: Map<String, String>): Boolean {
+    fun saveBackupToFile(context: Context, profileName: String, packageName: String, settingsData: Map<String, String>): Boolean {
         val timestamp = System.currentTimeMillis()
         val sdf = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
-        val fileName = "optimizer_backup_${sdf.format(Date(timestamp))}.json"
-        val backup = BackupData(timestamp, settingsData)
+        val fileName = "optimizer_backup_${packageName}_${sdf.format(Date(timestamp))}.json"
+        val backup = BackupData(timestamp, profileName, packageName, settingsData)
         return try {
             val file = File(context.filesDir, fileName)
             val jsonString = Json.encodeToString(backup)
@@ -61,13 +63,12 @@ object BackupAndRestoreManager {
     /**
      * Reads the backup data from the JSON file.
      */
-    fun readBackupFromFile(file: File): Map<String, String>? {
+    fun readBackupFromFile(file: File): BackupData? {
         return try {
             if (!file.exists()) return null
 
             val jsonString = file.readText()
-            val backup = Json.decodeFromString<BackupData>(jsonString)
-            backup.settings
+            Json.decodeFromString<BackupData>(jsonString)
         } catch (e: Exception) { // Catching a broader exception for JSON parsing issues
             e.printStackTrace()
             null

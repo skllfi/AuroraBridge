@@ -4,19 +4,22 @@ import android.content.Context
 import android.os.Build
 import com.aurorabridge.optimizer.R
 import com.aurorabridge.optimizer.model.DeviceBrand
-import com.aurorabridge.optimizer.utils.AdbCommander
+import com.aurorabridge.optimizer.utils.IAdbCommander
 import org.json.JSONObject
-import java.io.BufferedReader
-import java.io.InputStreamReader
+import java_io.BufferedReader
+import java_io.InputStreamReader
 
-object BrandAutoOptimizer {
+class BrandAutoOptimizer(
+    private val context: Context,
+    private val adbCommander: IAdbCommander
+) {
 
-    fun getProfileForCurrentDevice(context: Context): OptimizationProfile? {
+    fun getProfileForCurrentDevice(): OptimizationProfile? {
         val brand = getDeviceBrand()
         if (brand == DeviceBrand.UNKNOWN) return null
 
-        val commands = getOptimizationCommands(brand, context.packageName, context)
-        val description = getOptimizationDescription(brand, context)
+        val commands = getOptimizationCommands(brand, context.packageName)
+        val description = getOptimizationDescription(brand)
 
         return OptimizationProfile(
             brandName = brand.name.toLowerCase().capitalize(),
@@ -25,8 +28,7 @@ object BrandAutoOptimizer {
         )
     }
 
-    suspend fun applyOptimization(context: Context, profile: OptimizationProfile): Boolean {
-        val adbCommander = AdbCommander(context)
+    suspend fun applyOptimization(profile: OptimizationProfile): Boolean {
         var allSucceeded = true
         for (command in profile.commands) {
             val result = adbCommander.runAdbCommandAsync(command)
@@ -52,7 +54,7 @@ object BrandAutoOptimizer {
         }
     }
 
-    private fun getOptimizationCommands(brand: DeviceBrand, packageName: String, context: Context): List<String> {
+    private fun getOptimizationCommands(brand: DeviceBrand, packageName: String): List<String> {
         return try {
             val inputStream = context.resources.openRawResource(R.raw.brand_optimizations)
             val reader = BufferedReader(InputStreamReader(inputStream))
@@ -74,7 +76,7 @@ object BrandAutoOptimizer {
         }
     }
 
-    private fun getOptimizationDescription(brand: DeviceBrand, context: Context): Int {
+    private fun getOptimizationDescription(brand: DeviceBrand): Int {
         return when (brand) {
             DeviceBrand.XIAOMI -> R.string.optimization_desc_xiaomi
             DeviceBrand.HUAWEI -> R.string.optimization_desc_huawei
