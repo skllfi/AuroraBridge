@@ -3,6 +3,10 @@
     <string name="home_title">Главная</string>
     <string name="settings_title">Настройки</string>
     <string name="app_manager_title">Менеджер приложений</string>
+    <string name="profile_management_title">Управление профилями</string>
+    <string name="profile_management_summary">Импорт и экспорт профилей оптимизации.</string>
+    <string name="import_button_text">Импорт</string>
+    <string name="export_button_text">Экспорт</string>
 
     <string name="text_field_label_command">Команда ADB</string>
     <string name="button_run">Выполнить</string>
@@ -12,18 +16,38 @@
     <string name="onboarding_welcome_title">Добро пожаловать в AuroraBridge</string>
     <string name="onboarding_welcome_subtitle">Лучший инструмент для оптимизации вашего устройства.</string>
     <string name="onboarding_permissions_title">Разрешения</string>
-    <string name="onboarding_permissions_description">Чтобы извлечь максимальную пользу из AuroraBridge, нам нужно несколько разрешений. Пожалуйста, предоставьте их на следующем экране.</string>
+    <string name="onboarding_permissions_description">Чтобы извлечь максимум из AuroraBridge, нам нужно несколько разрешений. Пожалуйста, предоставьте их на следующем экране.</string>
     <string name="onboarding_button_next">Далее</string>
     <string name="onboarding_button_grant_permissions">Предоставить разрешения</string>
     <string name="onboarding_button_finish">Завершить</string>
 
     <!-- Settings Screen -->
-    <string name="settings_brand_optimization_dialog_title">Запустить оптимизацию</string>
+    <string name="settings_brand_optimization_dialog_title">Выполнить оптимизацию</string>
     <string name="settings_brand_optimization_dialog_message">Будут выполнены следующие команды:</string>
     <string name="settings_backup_created">Точка восстановления успешно создана.</string>
     <string name="settings_backup_failed">Не удалось создать точку восстановления.</string>
     <string name="settings_restore_success">Восстановление из резервной копии прошло успешно.</string>
     <string name="settings_restore_failed">Не удалось восстановить из резервной копии.</string>
+    <string name="settings_no_profile_found">Профиль оптимизации для вашего устройства не найден.</string>
+    <string name="settings_detected_brand">Обнаруженный бренд: %1$s</string>
+    <string name="settings_run_optimization">Запустить авто-оптимизацию для %1$s</string>
+    <string name="settings_confirmation_dialog_warning">Это применит изменения на системном уровне.</string>
+    <string name="settings_confirmation_dialog_review">Точка восстановления будет создана автоматически. Просмотрите изменения ниже:</string>
+    <string name="settings_confirmation_dialog_apply">Применить</string>
+    <string name="settings_confirmation_dialog_cancel">Отмена</string>
+    <string name="settings_command_info_uninstall">Удалить приложение</string>
+    <string name="settings_command_info_modify_setting">Изменить настройку: `%1$s`</string>
+    <string name="settings_command_info_new_value">Новое значение: %1$s</string>
+    <string name="settings_command_info_other_command">Другая команда</string>
+    <string name="settings_backup_history_title">История резервных копий</string>
+    <string name="settings_backup_history_summary">Просмотр и восстановление из предыдущих резервных копий.</string>
+    <string name="settings_auto_optimize_title">Авто-оптимизация при запуске</string>
+    <string name="settings_auto_optimize_summary">Применять профиль оптимизации автоматически при запуске устройства.</string>
+    <string name="settings_safe_mode_title">Безопасный режим</string>
+    <string name="settings_safe_mode_summary">Записывать команды без их выполнения.</string>
+    <string name="settings_dev_tools_title">Инструменты разработчика</string>
+    <string name="settings_dev_tools_summary">Просмотр логов команд и другой отладочной информации.</string>
+
 
     <!-- Auto-Optimization -->
     <string name="auto_optimization_notification_title">Оптимизация устройства</string>
@@ -35,7 +59,7 @@
     <string name="new_features_toggle_summary">Включить экспериментальные функции, которые все еще находятся в разработке.</string>
 
     <!-- Xiaomi -->
-    <string name="xiaomi_description">Отключает системную трассировку и другие функции отладки, которые могут повлиять на производительность.</string>
+    <string name="xiaomi_description">Отключает системную трассировку и другие функции отладки, которые могут влиять на производительность.</string>
 
     <!-- Google -->
     <string name="google_description">Оптимизирует планирование задач и рендеринг графики для более плавной работы.</string>
@@ -44,6 +68,57 @@
     <string name="samsung_description">Регулирует управление температурой и масштабирование частоты процессора для уменьшения троттлинга.</string>
 
     <!-- OnePlus -->
-    <string name="oneplus_description">Отключает ненужные фоновые процессы и ведение журналов для увеличения времени автономной работы.</string>
+    <string name="oneplus_description">Отключает ненужные фоновые процессы и ведение журналов для увеличения времени работы от батареи.</string>
+
+    <!-- Asus -->
+    <string name="asus_description">Удаляет распространенное предустановленное ПО с устройств Asus, такое как приложения ZenUI и предустановленные сервисы Facebook.</string>
+
+    <!-- Command Logger -->
+    <string name="command_logger_title">Логгер команд</string>
+    <string name="command_logger_clear">Очистить</string>
+    <string name="command_logger_empty">Команды еще не были записаны.</string>
+    <string name="command_logger_command_hint">Введите команду ADB</string>
+    <string name="command_logger_execute">Выполнить</string>
+
+    <!-- Home Screen -->
+    <string name="home_adb_setup_instructions">Инструкции по настройке ADB</string>
+    <string name="home_diagnostics">Диагностика</string>
+    <string name="home_adb_companion">ADB Companion</string>
+    <string name="home_app_list">Список приложений</string>
+    <string name="home_settings">Настройки</string>
+
+    <!-- AdbActivationGuide -->
+    <string name="adb_guide_title">Руководство по активации ADB</string>
+    <string name="adb_guide_step0_title">Шаг 0: Установите ADB на свой компьютер</string>
+    <string name="adb_guide_step0_desc">Прежде чем начать, вам необходимо установить ADB (Android Debug Bridge) на свой компьютер. Вы можете скачать последние версии Android Platform Tools, включающие ADB, с официального сайта разработчиков Android.</string>
+    <string name="adb_guide_open_platform_tools">Скачать Platform Tools</string>
+    <string name="adb_guide_step1_title">Шаг 1: Перейдите в \"О телефоне\"</string>
+    <string name="adb_guide_step1_desc">Сначала нам нужно найти номер сборки вашего устройства. Нажмите кнопку ниже, чтобы перейти в настройки вашего устройства, затем найдите и нажмите \"О телефоне\".</string>
+    <string name="adb_guide_step2_title">Шаг 2: Включите \"Параметры разработчика\"</string>
+    <string name="adb_guide_step2_desc">На экране \"О телефоне\" найдите \"Номер сборки\" и нажмите на него 7 раз подряд. Вы увидите сообщение, подтверждающее, что вы стали разработчиком.</string>
+    <string name="adb_guide_step3_title">Шаг 3: Откройте \"Параметры разработчика\"</string>
+    <string name="adb_guide_step3_desc">Теперь, когда вы разблокировали режим разработчика, вы можете получить к нему доступ. Нажмите кнопку ниже, чтобы перейти на экран \"Параметры разработчика\". Вы можете найти его в меню \"Система\".</string>
+    <string name="adb_guide_step4_title">Шаг 4: Включите отладку по USB</string>
+    <string name="adb_guide_step4_desc">В \"Параметрах разработчика\" найдите переключатель \"Отладка по USB\" и включите его. Возможно, вам потребуется подтвердить это действие на вашем устройстве.</string>
+    <string name="adb_guide_step5_title">Шаг 5: Включите беспроводную отладку</string>
+    <string name="adb_guide_step5_desc">Для полностью беспроводного подключения также включите \"Беспроводная отладка\". Это позволит вам подключаться к вашему устройству по Wi-Fi для выполнения операций ADB.</string>
+    <string name="adb_guide_open_settings">Открыть настройки устройства</string>
+    <string name="adb_guide_open_developer_settings">Открыть параметры разработчика</string>
+    <string name="adb_guide_previous">Назад</string>
+    <string name="adb_guide_next">Далее</string>
+    <string name="adb_guide_finish">Готово</string>
+    <string name="adb_guide_dev_options_enabled_title">Параметры разработчика уже включены</string>
+    <string name="adb_guide_dev_options_enabled_desc">Похоже, у вас уже включены параметры разработчика. Хотите перейти к шагам отладки?</string>
+    <string name="adb_guide_skip_to_last_step">Перейти</string>
+    <string name="adb_guide_stay_in_guide">Остаться</string>
+    <string name="troubleshooting_title">Устранение неполадок</string>
+    <string name="troubleshooting_dev_options_not_visible">Параметры разработчика не видны</string>
+    <string name="troubleshooting_dev_options_not_visible_desc">Если вы нажали на номер сборки 7 раз, а параметры разработчика все еще не видны, попробуйте перезагрузить устройство. На некоторых устройствах меню параметров разработчика скрыто в другом месте. Попробуйте поискать \"Параметры разработчика\" в настройках.</string>
+    <string name="troubleshooting_device_not_connecting">Устройство не подключается</string>
+    <string name="troubleshooting_device_not_connecting_desc">Если ваше устройство не подключается через ADB, убедитесь, что на вашем компьютере установлены правильные драйверы. Обычно их можно загрузить с веб-сайта производителя вашего устройства. Кроме того, попробуйте использовать другой USB-кабель и порт.</string>
+
+    <!-- Android 11+ -->
+    <string name="adb_guide_step5_android11_title">Шаг 5: Включите беспроводную отладку (Android 11+)</string>
+    <string name="adb_guide_step5_android11_desc">В \"Параметрах разработчика\" включите \"Беспроводная отладка\". После этого вы сможете выполнить сопряжение устройства с помощью QR-кода или кода сопряжения.</string>
 
 </resources>

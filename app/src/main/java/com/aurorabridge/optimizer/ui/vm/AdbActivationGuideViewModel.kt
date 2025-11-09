@@ -3,6 +3,7 @@ package com.aurorabridge.optimizer.ui.vm
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.provider.Settings
 import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
@@ -28,7 +29,9 @@ class AdbActivationGuideViewModel : ViewModel() {
     private val _showSkipDialog = MutableStateFlow(false)
     val showSkipDialog = _showSkipDialog.asStateFlow()
 
-    private val steps = listOf(
+    private val isAndroid11OrHigher = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
+
+    private val stepsLegacy = listOf(
         Step(
             titleResId = R.string.adb_guide_step0_title,
             descriptionResId = R.string.adb_guide_step0_desc,
@@ -71,7 +74,50 @@ class AdbActivationGuideViewModel : ViewModel() {
         )
     )
 
-    fun getSteps(): List<Step> = steps
+    private val stepsAndroid11 = listOf(
+        Step(
+            titleResId = R.string.adb_guide_step0_title,
+            descriptionResId = R.string.adb_guide_step0_desc,
+            buttonTextResId = R.string.adb_guide_open_platform_tools,
+            action = { ctx -> ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://developer.android.com/studio/releases/platform-tools"))) }
+        ),
+        Step(
+            titleResId = R.string.adb_guide_step1_title,
+            descriptionResId = R.string.adb_guide_step1_desc,
+            buttonTextResId = R.string.adb_guide_open_settings,
+            action = { ctx -> ctx.startActivity(Intent(Settings.ACTION_DEVICE_INFO_SETTINGS)) }
+        ),
+        Step(
+            titleResId = R.string.adb_guide_step2_title,
+            descriptionResId = R.string.adb_guide_step2_desc
+        ),
+        Step(
+            titleResId = R.string.adb_guide_step3_title,
+            descriptionResId = R.string.adb_guide_step3_desc,
+            buttonTextResId = R.string.adb_guide_open_developer_settings,
+            action = { ctx -> ctx.startActivity(Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS)) }
+        ),
+        Step(
+            titleResId = R.string.adb_guide_step4_title,
+            descriptionResId = R.string.adb_guide_step4_desc
+        ),
+        Step(
+            titleResId = R.string.adb_guide_step5_android11_title,
+            descriptionResId = R.string.adb_guide_step5_android11_desc
+        ),
+        Step(
+            titleResId = R.string.troubleshooting_title,
+            descriptionResId = R.string.troubleshooting_dev_options_not_visible,
+            isTroubleshooting = true
+        ),
+        Step(
+            titleResId = R.string.troubleshooting_title,
+            descriptionResId = R.string.troubleshooting_device_not_connecting,
+            isTroubleshooting = true
+        )
+    )
+
+    fun getSteps(): List<Step> = if (isAndroid11OrHigher) stepsAndroid11 else stepsLegacy
 
     fun checkForDeveloperOptions(context: Context) {
         viewModelScope.launch {
@@ -95,6 +141,7 @@ class AdbActivationGuideViewModel : ViewModel() {
     }
 
     fun onNextStep() {
+        val steps = getSteps()
         if (_currentStep.value < steps.size - 1) {
             _currentStep.value++
         }
@@ -107,6 +154,6 @@ class AdbActivationGuideViewModel : ViewModel() {
     }
     
     fun onTroubleshooting() {
-        _currentStep.value = 6
+        _currentStep.value = getSteps().size - 2
     }
 }

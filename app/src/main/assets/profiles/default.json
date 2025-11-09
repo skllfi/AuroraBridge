@@ -1,0 +1,34 @@
+{
+  "name": "Default Tweaks",
+  "description": "A set of safe, recommended optimizations for most devices.",
+  "author": "AuroraBridge",
+  "categories": [
+    {
+      "name": "UI & Animation",
+      "description": "Tweaks to make the user interface feel faster and more responsive.",
+      "commands": [
+        {
+          "name": "Reduce Animation Scale",
+          "description": "Speeds up transitions and animations across the system.",
+          "command": "settings put global window_animation_scale 0.5; settings put global transition_animation_scale 0.5; settings put global animator_duration_scale 0.5"
+        },
+        {
+          "name": "Disable Transition Animation",
+          "description": "Disables the animation shown when transitioning between screens.",
+          "command": "settings put global transition_animation_scale 0"
+        }
+      ]
+    },
+    {
+      "name": "Connectivity",
+      "description": "Optimizations related to network and data usage.",
+      "commands": [
+        {
+          "name": "Disable Mobile Data in Roaming",
+          "description": "Prevents the device from using mobile data when roaming to avoid extra charges.",
+          "command": "settings put global data_roaming 0"
+        }
+      ]
+    }
+  ]
+}

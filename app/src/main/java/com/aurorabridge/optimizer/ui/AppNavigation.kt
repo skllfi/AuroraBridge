@@ -33,12 +33,17 @@ fun AppNavigation(
                 requestPermission()
             }
         }
+        composable("permissions/{packageName}", arguments = listOf(navArgument("packageName") { type = NavType.StringType })) {
+            PermissionsScreen(navController)
+        }
         composable(AppScreen.UserWarning.route) { UserWarningScreen(navController) }
         composable(AppScreen.Diagnostics.route) { DiagnosticsScreen(navController) }
         composable(AppScreen.Adb.route) { AdbCompanionScreen(navController) }
         composable(AppScreen.AdbGuide.route) { AdbActivationGuide(navController) }
         composable(AppScreen.Instructions.route) { InstructionsScreen() }
         composable(AppScreen.CommandLogger.route) { CommandLoggerScreen() }
+        composable(AppScreen.ProfileManagement.route) { ProfileManagementScreen() }
+        composable(AppScreen.OptimizationWizard.route) { OptimizationWizardScreen() }
         composable(
             AppScreen.AppControl.route,
             arguments = listOf(navArgument("packageName") { type = NavType.StringType })

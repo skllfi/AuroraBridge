@@ -1,8 +1,13 @@
+
 <resources>
     <string name="app_name">AuroraBridge Optimizer</string>
     <string name="home_title">Home</string>
     <string name="settings_title">Settings</string>
     <string name="app_manager_title">App Manager</string>
+    <string name="profile_management_title">Profile Management</string>
+    <string name="profile_management_summary">Import and export optimization profiles.</string>
+    <string name="import_button_text">Import</string>
+    <string name="export_button_text">Export</string>
 
     <string name="text_field_label_command">ADB Command</string>
     <string name="button_run">Run</string>
@@ -24,6 +29,26 @@
     <string name="settings_backup_failed">Failed to create restore point.</string>
     <string name="settings_restore_success">Restored from backup successfully.</string>
     <string name="settings_restore_failed">Failed to restore from backup.</string>
+    <string name="settings_no_profile_found">No optimization profile found for your device.</string>
+    <string name="settings_detected_brand">Detected Brand: %1$s</string>
+    <string name="settings_run_optimization">Run %1$s Auto-Optimize</string>
+    <string name="settings_confirmation_dialog_warning">This will apply system-level changes.</string>
+    <string name="settings_confirmation_dialog_review">A restore point will be automatically created. Review the changes below:</string>
+    <string name="settings_confirmation_dialog_apply">Apply</string>
+    <string name="settings_confirmation_dialog_cancel">Cancel</string>
+    <string name="settings_command_info_uninstall">Uninstall App</string>
+    <string name="settings_command_info_modify_setting">Modify Setting: `%1$s`</string>
+    <string name="settings_command_info_new_value">New Value: %1$s</string>
+    <string name="settings_command_info_other_command">Other Command</string>
+    <string name="settings_backup_history_title">Backup History</string>
+    <string name="settings_backup_history_summary">View and restore from previous backups.</string>
+    <string name="settings_auto_optimize_title">Auto-Optimize on Startup</string>
+    <string name="settings_auto_optimize_summary">Apply the optimization profile automatically when your device starts.</string>
+    <string name="settings_safe_mode_title">Safe Mode</string>
+    <string name="settings_safe_mode_summary">Log commands without executing them.</string>
+    <string name="settings_dev_tools_title">Developer Tools</string>
+    <string name="settings_dev_tools_summary">View command logs and other debug information.</string>
+
 
     <!-- Auto-Optimization -->
     <string name="auto_optimization_notification_title">Device Optimization</string>
@@ -45,5 +70,56 @@
 
     <!-- OnePlus -->
     <string name="oneplus_description">Disables unnecessary background processes and logging for better battery life.</string>
+
+    <!-- Asus -->
+    <string name="asus_description">Removes common bloatware from Asus devices, such as ZenUI-specific apps and pre-installed Facebook services.</string>
+
+    <!-- Command Logger -->
+    <string name="command_logger_title">Command Logger</string>
+    <string name="command_logger_clear">Clear</string>
+    <string name="command_logger_empty">No commands have been logged yet.</string>
+    <string name="command_logger_command_hint">Enter ADB command</string>
+    <string name="command_logger_execute">Execute</string>
+
+    <!-- Home Screen -->
+    <string name="home_adb_setup_instructions">ADB Setup Instructions</string>
+    <string name="home_diagnostics">Diagnostics</string>
+    <string name="home_adb_companion">ADB Companion</string>
+    <string name="home_app_list">App List</string>
+    <string name="home_settings">Settings</string>
+
+    <!-- AdbActivationGuide -->
+    <string name="adb_guide_title">ADB Activation Guide</string>
+    <string name="adb_guide_step0_title">Step 0: Install ADB on Your Computer</string>
+    <string name="adb_guide_step0_desc">Before you begin, you need to have ADB (Android Debug Bridge) installed on your computer. You can download the latest Android Platform Tools, which include ADB, from the official Android developer website.</string>
+    <string name="adb_guide_open_platform_tools">Download Platform Tools</string>
+    <string name="adb_guide_step1_title">Step 1: Go to \"About Phone\"</string>
+    <string name="adb_guide_step1_desc">First, we need to find your device\'s build number. Click the button below to go to your device settings, then find and tap on \"About phone\".</string>
+    <string name="adb_guide_step2_title">Step 2: Enable Developer Options</string>
+    <string name="adb_guide_step2_desc">On the \"About phone\" screen, find \"Build number\" and tap it 7 times in a row. You will see a message confirming that you are now a developer.</string>
+    <string name="adb_guide_step3_title">Step 3: Open Developer Options</string>
+    <string name="adb_guide_step3_desc">Now that you\'ve unlocked developer mode, you can access it. Click the button below to go to the Developer Options screen. You might find it inside the \"System\" menu.</string>
+    <string name="adb_guide_step4_title">Step 4: Enable USB Debugging</string>
+    <string name="adb_guide_step4_desc">In \"Developer options\", find the \"USB debugging\" switch and turn it on. You may need to confirm this action on your device.</string>
+    <string name="adb_guide_step5_title">Step 5: Enable Wireless Debugging</string>
+    <string name="adb_guide_step5_desc">For a fully wireless experience, enable \"Wireless debugging\" as well. This will allow you to connect to your device over Wi-Fi for ADB operations.</string>
+    <string name="adb_guide_open_settings">Open Device Settings</string>
+    <string name="adb_guide_open_developer_settings">Open Developer Options</string>
+    <string name="adb_guide_previous">Previous</string>
+    <string name="adb_guide_next">Next</string>
+    <string name="adb_guide_finish">Finish</string>
+    <string name="adb_guide_dev_options_enabled_title">Developer Options Already Enabled</string>
+    <string name="adb_guide_dev_options_enabled_desc">It looks like you already have developer options enabled. Would you like to skip to the debugging steps?</string>
+    <string name="adb_guide_skip_to_last_step">Skip Ahead</string>
+    <string name="adb_guide_stay_in_guide">Stay in Guide</string>
+    <string name="troubleshooting_title">Troubleshooting</string>
+    <string name="troubleshooting_dev_options_not_visible">Developer options not visible</string>
+    <string name="troubleshooting_dev_options_not_visible_desc">If you have tapped the build number 7 times and developer options are still not visible, try restarting your device. On some devices, the developer options menu is hidden in a different location. Try searching for \"Developer Options\" in your settings.</string>
+    <string name="troubleshooting_device_not_connecting">Device not connecting</string>
+    <string name="troubleshooting_device_not_connecting_desc">If your device is not connecting via ADB, ensure that you have the correct drivers installed on your computer. You can usually download these from your device manufacturer\'s website. Also, try using a different USB cable and port.</string>
+
+    <!-- Android 11+ -->
+    <string name="adb_guide_step5_android11_title">Step 5: Enable Wireless Debugging (Android 11+)</string>
+    <string name="adb_guide_step5_android11_desc">In Developer Options, enable \"Wireless debugging\". You\'ll then be able to pair your device using a QR code or a pairing code.</string>
 
 </resources>

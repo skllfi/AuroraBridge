@@ -1,0 +1,86 @@
+
+[
+  {
+    "name": "Asus",
+    "manufacturer": "asus",
+    "description": "Removes common bloatware from Asus devices, such as ZenUI-specific apps and pre-installed Facebook services. This can free up system resources and improve privacy.",
+    "commands": [
+      "pm uninstall -k --user 0 com.asus.asusincall",
+      "pm uninstall -k --user 0 com.asus.calculator",
+      "pm uninstall -k --user 0 com.asus.calendar",
+      "pm uninstall -k --user 0 com.asus.contacts",
+      "pm uninstall -k --user 0 com.asus.filemanager",
+      "pm uninstall -k --user 0 com.asus.gallery",
+      "pm uninstall -k --user 0 com.asus.messaging",
+      "pm uninstall -k --user 0 com.asus.soundrecorder",
+      "pm uninstall -k --user 0 com.facebook.appmanager",
+      "pm uninstall -k --user 0 com.facebook.services",
+      "pm uninstall -k --user 0 com.facebook.system"
+    ]
+  },
+  {
+    "name": "Xiaomi",
+    "manufacturer": "xiaomi",
+    "description": "Enables performance mode and disables power saving for better app performance.",
+    "commands": [
+      "settings put system miui_performance_mode 1",
+      "settings put system miui_power_save_mode_user_open 0",
+      "appops set $packageName AUTO_START allow",
+      "dumpsys deviceidle whitelist +$packageName"
+    ]
+  },
+  {
+    "name": "Huawei",
+    "manufacturer": "huawei",
+    "description": "Enables performance mode for better app performance.",
+    "commands": [
+      "settings put system performance_mode 1"
+    ]
+  },
+  {
+    "name": "Samsung",
+    "manufacturer": "samsung",
+    "description": "Adjusts animation scales for a smoother user experience.",
+    "commands": [
+      "settings put system transition_animation_scale 0.5",
+      "settings put system window_animation_scale 0.5",
+      "settings put system animator_duration_scale 0.5"
+    ]
+  },
+  {
+    "name": "OnePlus",
+    "manufacturer": "oneplus",
+    "description": "Allows apps to run in the background and bypasses device idle restrictions.",
+    "commands": [
+      "appops set $packageName RUN_IN_BACKGROUND allow",
+      "dumpsys deviceidle whitelist +$packageName"
+    ]
+  },
+  {
+    "name": "Oppo",
+    "manufacturer": "oppo",
+    "description": "Enables performance mode and bypasses device idle restrictions.",
+    "commands": [
+      "settings put system oppo_performance_mode 1",
+      "dumpsys deviceidle whitelist +$packageName"
+    ]
+  },
+  {
+    "name": "Vivo",
+    "manufacturer": "vivo",
+    "description": "Enables performance mode and bypasses device idle restrictions.",
+    "commands": [
+      "settings put system vivo_performance_mode 1",
+      "dumpsys deviceidle whitelist +$packageName"
+    ]
+  },
+  {
+    "name": "Realme",
+    "manufacturer": "realme",
+    "description": "Enables performance mode and bypasses device idle restrictions.",
+    "commands": [
+      "settings put system realme_performance_mode 1",
+      "dumpsys deviceidle whitelist +$packageName"
+    ]
+  }
+]

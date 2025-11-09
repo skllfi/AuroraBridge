@@ -1,52 +1,68 @@
-
 package com.aurorabridge.optimizer.repository
 
 import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
-import com.aurorabridge.optimizer.adb.AdbHelper
-import com.aurorabridge.optimizer.ui.apps.AppFilter
-import com.aurorabridge.optimizer.ui.apps.AppInfo
+import com.aurorabridge.optimizer.model.AppCategory
+import com.aurorabridge.optimizer.model.AppItem
+import com.aurorabridge.optimizer.services.BloatwareApps
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class AppRepository(private val context: Context) {
+@Singleton
+class AppRepository @Inject constructor(
+    @ApplicationContext private val context: Context
+) {
 
-    fun getInstalledApps(filter: AppFilter = AppFilter.ALL): List<AppInfo> {
-        val pm = context.packageManager
-        val packages = pm.getInstalledApplications(PackageManager.GET_META_DATA)
-        val appList = mutableListOf<AppInfo>()
+    fun getInstalledApps(): List<AppItem> {
+        val packageManager = context.packageManager
+        val apps = packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
 
-        for (app in packages) {
-            val isSystemApp = (app.flags and ApplicationInfo.FLAG_SYSTEM) != 0
+        return apps.mapNotNull { appInfo ->
+            try {
+                val packageInfo = packageManager.getPackageInfo(appInfo.packageName, PackageManager.GET_PERMISSIONS)
+                val permissions = packageInfo.requestedPermissions?.toList() ?: emptyList()
 
-            val shouldAdd = when (filter) {
-                AppFilter.ALL -> true
-                AppFilter.USER_ONLY -> !isSystemApp
-                AppFilter.SYSTEM_ONLY -> isSystemApp
-            }
-
-            if (shouldAdd) {
-                val appName = app.loadLabel(pm).toString()
-                val packageName = app.packageName
-                val appIcon = app.icon
-                appList.add(AppInfo(appName, packageName, appIcon, isSystemApp))
+                val category = classifyApp(appInfo)
+                AppItem(
+                    name = appInfo.loadLabel(packageManager).toString(),
+                    packageName = appInfo.packageName,
+                    icon = appInfo.loadIcon(packageManager),
+                    category = category,
+                    permissions = permissions
+                )
+            } catch (e: PackageManager.NameNotFoundException) {
+                null
             }
         }
-
-        return appList.sortedBy { it.name }
     }
 
-    fun uninstallApps(packageNames: List<String>): String {
-        val results = packageNames.map { "pm uninstall $it" }
-        return AdbHelper.runCommands(results).joinToString("\n")
+    fun getApp(packageName: String): AppItem? {
+        val packageManager = context.packageManager
+        return try {
+            val appInfo = packageManager.getApplicationInfo(packageName, PackageManager.GET_META_DATA)
+            val packageInfo = packageManager.getPackageInfo(packageName, PackageManager.GET_PERMISSIONS)
+            val permissions = packageInfo.requestedPermissions?.toList() ?: emptyList()
+            val category = classifyApp(appInfo)
+
+            AppItem(
+                name = appInfo.loadLabel(packageManager).toString(),
+                packageName = appInfo.packageName,
+                icon = appInfo.loadIcon(packageManager),
+                category = category,
+                permissions = permissions
+            )
+        } catch (e: PackageManager.NameNotFoundException) {
+            null
+        }
     }
 
-    fun disableApps(packageNames: List<String>): String {
-        val results = packageNames.map { "pm disable-user --user 0 $it" }
-        return AdbHelper.runCommands(results).joinToString("\n")
-    }
-
-    fun enableApps(packageNames: List<String>): String {
-        val results = packageNames.map { "pm enable $it" }
-        return AdbHelper.runCommands(results).joinToString("\n")
+    private fun classifyApp(appInfo: ApplicationInfo): AppCategory {
+        return when {
+            BloatwareApps.packageNames.contains(appInfo.packageName) -> AppCategory.BLOATWARE
+            (appInfo.flags and ApplicationInfo.FLAG_SYSTEM) != 0 -> AppCategory.SYSTEM
+            else -> AppCategory.USER
+        }
     }
 }

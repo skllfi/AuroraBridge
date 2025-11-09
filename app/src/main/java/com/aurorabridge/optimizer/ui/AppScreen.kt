@@ -9,6 +9,7 @@ sealed class AppScreen(val route: String) {
     object AdbGuide : AppScreen("adb_guide")
     object Instructions : AppScreen("instructions")
     object CommandLogger : AppScreen("command_logger")
+    object ProfileManagement : AppScreen("profile_management")
     object AppControl : AppScreen("app_control_screen/{packageName}") {
         fun createRoute(packageName: String) = "app_control_screen/$packageName"
     }
@@ -16,4 +17,5 @@ sealed class AppScreen(val route: String) {
     object Settings : AppScreen("settings")
     object AppManager : AppScreen("app_manager")
     object BackupHistory : AppScreen("backup_history")
+    object OptimizationWizard : AppScreen("optimization_wizard")
 }

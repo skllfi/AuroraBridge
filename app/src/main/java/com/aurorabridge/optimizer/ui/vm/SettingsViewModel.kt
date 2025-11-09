@@ -5,20 +5,19 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aurorabridge.optimizer.optimizer.BrandAutoOptimizer
 import com.aurorabridge.optimizer.repository.SettingsRepository
-import com.aurorabridge.optimizer.utils.BackupManager
+import com.aurorabridge.optimizer.utils.CommandParser
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
-    private val brandAutoOptimizer: BrandAutoOptimizer,
-    private val backupManager: BackupManager
+    private val brandAutoOptimizer: BrandAutoOptimizer
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<SettingsUiState>(SettingsUiState.Loading)
@@ -29,11 +28,11 @@ class SettingsViewModel @Inject constructor(
 
     val snackbarMessage = MutableSharedFlow<String>()
 
-    fun loadInitialState(context: Context) {
+    fun loadInitialState() {
         viewModelScope.launch {
             _uiState.value = SettingsUiState.Loaded(
-                profile = brandAutoOptimizer.getProfileForCurrentDevice(context),
-                hasBackup = backupManager.hasBackup(context),
+                profile = brandAutoOptimizer.getProfileForCurrentDevice(),
+                hasBackup = false, // Deprecated: No longer managed here
                 autoOptimizeOnStartup = settingsRepository.isAutoOptimizeOnStartupEnabled(),
                 safeModeEnabled = settingsRepository.isSafeModeEnabled(),
                 newFeaturesEnabled = settingsRepository.isNewFeaturesEnabled()
@@ -42,21 +41,27 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun onRunOptimizationClicked() {
-        _showConfirmationDialog.value = true
+        val state = _uiState.value
+        if (state is SettingsUiState.Loaded && state.profile != null) {
+            val parsed = CommandParser.parse(state.profile.commands)
+            _uiState.update { (it as SettingsUiState.Loaded).copy(parsedCommands = parsed) }
+            _showConfirmationDialog.value = true
+        }
     }
 
-    fun onConfirmOptimization(context: Context) {
+    fun onConfirmOptimization() {
         _showConfirmationDialog.value = false
         viewModelScope.launch {
             val state = _uiState.value
-            if (state is SettingsUiState.Loaded) {
-                state.profile?.let {
-                    val success = brandAutoOptimizer.applyOptimization(context, it)
-                    if (success) {
-                        snackbarMessage.emit("Optimization applied successfully!")
-                    } else {
-                        snackbarMessage.emit("Optimization failed.")
-                    }
+            if (state is SettingsUiState.Loaded && state.profile != null) {
+                val results = brandAutoOptimizer.applyOptimization(state.profile.brandName)
+                val successCount = results.values.count { !it.contains("error", ignoreCase = true) }
+                val totalCount = results.size
+
+                if (successCount == totalCount) {
+                    snackbarMessage.emit("Optimization applied successfully!")
+                } else {
+                    snackbarMessage.emit("Optimization partially applied ($successCount/$totalCount). Check logs for details.")
                 }
             }
         }
@@ -64,52 +69,6 @@ class SettingsViewModel @Inject constructor(
 
     fun onDismissDialog() {
         _showConfirmationDialog.value = false
-    }
-
-    fun createBackup(context: Context) {
-        viewModelScope.launch {
-            val success = backupManager.createBackup(context)
-            if (success) {
-                snackbarMessage.emit("Backup created successfully!")
-                loadInitialState(context) // Refresh state
-            } else {
-                snackbarMessage.emit("Failed to create backup.")
-            }
-        }
-    }
-
-    fun restoreBackup(context: Context) {
-        viewModelScope.launch {
-            val success = backupManager.restoreBackup(context)
-            if (success) {
-                snackbarMessage.emit("Backup restored successfully!")
-            } else {
-                snackbarMessage.emit("Failed to restore backup.")
-            }
-        }
-    }
-
-    fun exportSettings(context: Context) {
-        viewModelScope.launch {
-            val success = backupManager.exportSettings(context)
-            if (success) {
-                snackbarMessage.emit("Settings exported successfully!")
-            } else {
-                snackbarMessage.emit("Failed to export settings.")
-            }
-        }
-    }
-
-    fun importSettings(context: Context, file: File) {
-        viewModelScope.launch {
-            val success = backupManager.importSettings(context, file)
-            if (success) {
-                snackbarMessage.emit("Settings imported successfully!")
-                loadInitialState(context) // Refresh state
-            } else {
-                snackbarMessage.emit("Failed to import settings.")
-            }
-        }
     }
 
     fun onAutoOptimizeOnStartupChanged(enabled: Boolean) {

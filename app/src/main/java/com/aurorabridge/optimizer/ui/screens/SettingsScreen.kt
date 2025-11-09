@@ -1,32 +1,20 @@
 package com.aurorabridge.optimizer.ui.screens
 
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.PowerSettingsNew
-import androidx.compose.material.icons.filled.Restore
-import androidx.compose.material.icons.filled.Save
-import androidx.compose.material.icons.filled.Security
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -36,18 +24,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.aurorabridge.optimizer.R
-import com.aurorabridge.optimizer.optimizer.OptimizationProfile
-import com.aurorabridge.optimizer.ui.components.ConfirmationDialog
+import com.aurorabridge.optimizer.ui.AppScreen
+import com.aurorabridge.optimizer.ui.screens.settings.EnhancedConfirmationDialog
+import com.aurorabridge.optimizer.ui.screens.settings.SettingsCard
+import com.aurorabridge.optimizer.ui.screens.settings.OptimizationProfileCard
 import com.aurorabridge.optimizer.ui.vm.SettingsUiState
 import com.aurorabridge.optimizer.ui.vm.SettingsViewModel
-import java.io.File
 
 @Composable
 fun SettingsScreen(
@@ -57,23 +44,9 @@ fun SettingsScreen(
     val uiState by settingsViewModel.uiState.collectAsState()
     val showDialog by settingsViewModel.showConfirmationDialog.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
-    val context = LocalContext.current
-
-    val importLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent(),
-        onResult = { uri ->
-            uri?.let { context.contentResolver.openInputStream(it) }?.use { inputStream ->
-                val file = File(context.cacheDir, "imported_settings.json")
-                file.outputStream().use { outputStream ->
-                    inputStream.copyTo(outputStream)
-                }
-                settingsViewModel.importSettings(context, file)
-            }
-        }
-    )
 
     LaunchedEffect(Unit) {
-        settingsViewModel.loadInitialState(context)
+        settingsViewModel.loadInitialState()
         settingsViewModel.snackbarMessage.collect { message ->
             snackbarHostState.showSnackbar(message)
         }
@@ -84,7 +57,10 @@ fun SettingsScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) {
         Column(
-            modifier = Modifier.fillMaxSize().padding(it).padding(16.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(it)
+                .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             when (val state = uiState) {
@@ -93,213 +69,78 @@ fun SettingsScreen(
                 }
                 is SettingsUiState.Loaded -> {
                     state.profile?.let {
-                        OptimizationProfileCard(profile = it, onRunOptimization = { settingsViewModel.onRunOptimizationClicked() })
+                        OptimizationProfileCard(
+                            profile = it,
+                            onRunOptimization = { settingsViewModel.onRunOptimizationClicked() })
                     } ?: run {
-                        Text(text = "No optimization profile found for your device.")
+                        Text(text = stringResource(R.string.settings_no_profile_found))
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    OfflineBackupCard(
-                        onExport = { settingsViewModel.exportSettings(context) },
-                        onImport = { importLauncher.launch("*/*") }
+                    SettingsCard(
+                        icon = Icons.Default.History,
+                        title = stringResource(R.string.settings_backup_history_title),
+                        summary = stringResource(R.string.settings_backup_history_summary),
+                        onClick = { navController.navigate(AppScreen.BackupHistory.route) }
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    BackupCard(
-                        hasBackup = state.hasBackup,
-                        onCreateBackup = { settingsViewModel.createBackup(context) },
-                        onRestoreBackup = { settingsViewModel.restoreBackup(context) }
+                    SettingsCard(
+                        icon = Icons.Default.Storage,
+                        title = stringResource(R.string.profile_management_title),
+                        summary = stringResource(R.string.profile_management_summary),
+                        onClick = { navController.navigate(AppScreen.ProfileManagement.route) }
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    BackupHistoryCard(navController = navController)
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    AutoOptimizeCard(
-                        autoOptimizeOnStartup = state.autoOptimizeOnStartup,
-                        onCheckedChange = { settingsViewModel.onAutoOptimizeOnStartupChanged(it) }
+                    SettingsCard(
+                        icon = Icons.Default.PowerSettingsNew,
+                        title = stringResource(R.string.settings_auto_optimize_title),
+                        summary = stringResource(R.string.settings_auto_optimize_summary),
+                        onCheckedChange = { settingsViewModel.onAutoOptimizeOnStartupChanged(it) },
+                        isChecked = state.autoOptimizeOnStartup
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    SafeModeCard(
-                        safeModeEnabled = state.safeModeEnabled,
-                        onCheckedChange = { settingsViewModel.onSafeModeChanged(it) }
+                    SettingsCard(
+                        icon = Icons.Default.Info,
+                        title = stringResource(R.string.settings_safe_mode_title),
+                        summary = stringResource(R.string.settings_safe_mode_summary),
+                        onCheckedChange = { settingsViewModel.onSafeModeChanged(it) },
+                        isChecked = state.safeModeEnabled
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    NewFeaturesCard(
-                        newFeaturesEnabled = state.newFeaturesEnabled,
-                        onCheckedChange = { settingsViewModel.onNewFeaturesEnabledChanged(it) }
+                    SettingsCard(
+                        icon = Icons.Default.Code,
+                        title = stringResource(id = R.string.new_features_toggle_title),
+                        summary = stringResource(id = R.string.new_features_toggle_summary),
+                        onCheckedChange = { settingsViewModel.onNewFeaturesEnabledChanged(it) },
+                        isChecked = state.newFeaturesEnabled
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    DevToolsCard(navController = navController)
+                    SettingsCard(
+                        icon = Icons.Default.Code,
+                        title = stringResource(R.string.settings_dev_tools_title),
+                        summary = stringResource(R.string.settings_dev_tools_summary),
+                        onClick = { navController.navigate(AppScreen.CommandLogger.route) }
+                    )
 
                     if (showDialog) {
-                        state.profile?.let {
-                            ConfirmationDialog(
-                                title = stringResource(id = R.string.settings_brand_optimization_dialog_title),
-                                message = stringResource(id = R.string.settings_brand_optimization_dialog_message) + "\n\n" + it.commands.joinToString("\n"),
-                                onConfirm = { settingsViewModel.onConfirmOptimization(context) },
-                                onDismiss = { settingsViewModel.onDismissDialog() }
-                            )
-                        }
+                        EnhancedConfirmationDialog(
+                            parsedCommands = state.parsedCommands,
+                            onConfirm = { settingsViewModel.onConfirmOptimization() },
+                            onDismiss = { settingsViewModel.onDismissDialog() }
+                        )
                     }
                 }
-            }
-        }
-    }
-}
-
-@Composable
-private fun OptimizationProfileCard(profile: OptimizationProfile, onRunOptimization: () -> Unit) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Info, contentDescription = "Info")
-                Spacer(modifier = Modifier.padding(start = 16.dp))
-                Text(text = "Detected Brand: ${profile.brandName}", fontWeight = FontWeight.Bold)
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(text = stringResource(id = profile.description))
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(onClick = onRunOptimization, modifier = Modifier.fillMaxWidth()) {
-                Text("Run ${profile.brandName} Auto-Optimize")
-            }
-        }
-    }
-}
-
-@Composable
-fun OfflineBackupCard(onExport: () -> Unit, onImport: () -> Unit) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = "Offline Backup", fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(text = "Export and import your settings as a JSON file.")
-            Spacer(modifier = Modifier.height(16.dp))
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                Button(onClick = onExport) {
-                    Icon(Icons.Default.Save, contentDescription = "Export")
-                    Spacer(modifier = Modifier.padding(start = 8.dp))
-                    Text("Export")
-                }
-                Button(onClick = onImport) {
-                    Icon(Icons.Default.Restore, contentDescription = "Import")
-                    Spacer(modifier = Modifier.padding(start = 8.dp))
-                    Text("Import")
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun BackupCard(hasBackup: Boolean, onCreateBackup: () -> Unit, onRestoreBackup: () -> Unit) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = "Backup & Restore", fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(text = "Create a restore point before applying optimizations.")
-            Spacer(modifier = Modifier.height(16.dp))
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                Button(onClick = onCreateBackup) {
-                    Icon(Icons.Default.Save, contentDescription = "Save")
-                    Spacer(modifier = Modifier.padding(start = 8.dp))
-                    Text("Create Restore Point")
-                }
-                Button(onClick = onRestoreBackup, enabled = hasBackup) {
-                    Icon(Icons.Default.Restore, contentDescription = "Restore")
-                    Spacer(modifier = Modifier.padding(start = 8.dp))
-                    Text("Restore from Backup")
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun BackupHistoryCard(navController: NavController) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { navController.navigate("backup_history") }
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(Icons.Default.History, contentDescription = "Backup History")
-            Column(modifier = Modifier.weight(1f).padding(start = 16.dp)) {
-                Text(text = "Backup History", fontWeight = FontWeight.Bold)
-                Text(text = "View and restore from previous backups.")
-            }
-        }
-    }
-}
-
-@Composable
-private fun AutoOptimizeCard(autoOptimizeOnStartup: Boolean, onCheckedChange: (Boolean) -> Unit) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.PowerSettingsNew, contentDescription = "Auto-optimize")
-            Column(modifier = Modifier.weight(1f).padding(start = 16.dp)) {
-                Text(text = "Auto-Optimize on Startup", fontWeight = FontWeight.Bold)
-                Text(text = "Apply the optimization profile automatically when your device starts.")
-            }
-            Switch(checked = autoOptimizeOnStartup, onCheckedChange = onCheckedChange)
-        }
-    }
-}
-
-@Composable
-private fun SafeModeCard(safeModeEnabled: Boolean, onCheckedChange: (Boolean) -> Unit) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.Security, contentDescription = "Safe Mode")
-            Column(modifier = Modifier.weight(1f).padding(start = 16.dp)) {
-                Text(text = "Safe Mode", fontWeight = FontWeight.Bold)
-                Text(text = "Log commands without executing them.")
-            }
-            Switch(checked = safeModeEnabled, onCheckedChange = onCheckedChange)
-        }
-    }
-}
-
-@Composable
-private fun NewFeaturesCard(newFeaturesEnabled: Boolean, onCheckedChange: (Boolean) -> Unit) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.Code, contentDescription = "New Features")
-            Column(modifier = Modifier.weight(1f).padding(start = 16.dp)) {
-                Text(text = stringResource(id = R.string.new_features_toggle_title), fontWeight = FontWeight.Bold)
-                Text(text = stringResource(id = R.string.new_features_toggle_summary))
-            }
-            Switch(checked = newFeaturesEnabled, onCheckedChange = onCheckedChange)
-        }
-    }
-}
-
-@Composable
-private fun DevToolsCard(navController: NavController) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { navController.navigate("command_logger") }
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(Icons.Default.Code, contentDescription = "Developer Tools")
-            Column(modifier = Modifier.weight(1f).padding(start = 16.dp)) {
-                Text(text = "Developer Tools", fontWeight = FontWeight.Bold)
-                Text(text = "View command logs and other debug information.")
             }
         }
     }
