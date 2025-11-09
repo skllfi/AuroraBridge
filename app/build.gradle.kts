@@ -4,6 +4,8 @@ plugins {
     id("org.jetbrains.kotlin.plugin.serialization")
     id("com.google.dagger.hilt.android")
     kotlin("kapt")
+    // АКТИВИРУЕМ ПЛАГИН GOOGLE SERVICES
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -30,6 +32,11 @@ android {
 }
 
 dependencies {
+    // FIREBASE BILL OF MATERIALS (BOM)
+    implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
+    // ПЕРВАЯ ЗАВИСИМОСТЬ FIREBASE
+    implementation("com.google.firebase:firebase-analytics")
+
     val composeBom = platform("androidx.compose:compose-bom:2024.05.00")
     implementation(composeBom)
     implementation("androidx.compose.ui:ui")
